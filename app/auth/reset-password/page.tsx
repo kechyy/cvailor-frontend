@@ -1,10 +1,25 @@
-'use client'
+"use client"
 import Link from 'next/link'
+import { FormProvider, useForm } from 'react-hook-form'
 import AuthLayout from '@/components/auth/AuthLayout'
 import InputField from '@/components/auth/InputField'
 import SubmitButton from '@/components/auth/SubmitButton'
 
+type ResetFormValues = { email: string }
+
 export default function ResetPasswordPage() {
+  const methods = useForm<ResetFormValues>({
+    defaultValues: { email: '' },
+    mode: 'onBlur'
+  })
+
+  const { handleSubmit, formState: { isSubmitting } } = methods
+
+  const onSubmit = async (values: ResetFormValues) => {
+    // TODO: connect to backend
+    console.log('Reset password', values)
+  }
+
   return (
     <AuthLayout
       title="Reset your password"
@@ -18,17 +33,25 @@ export default function ResetPasswordPage() {
         </svg>
       </div>
 
-      <form className="space-y-4">
-        <InputField
-          id="email"
-          label="Email address"
-          type="email"
-          placeholder="you@example.com"
-          required
-          autoComplete="email"
-        />
-        <SubmitButton label="Send reset link →" />
-      </form>
+      <FormProvider {...methods}>
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <InputField
+            name="email"
+            label="Email address"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+            rules={{
+              pattern: {
+                value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/,
+                message: 'Enter a valid email address.'
+              }
+            }}
+          />
+          <SubmitButton label="Send reset link →" loading={isSubmitting} />
+        </form>
+      </FormProvider>
 
       <p className="text-center text-sm text-gray-400 mt-6">
         Remembered it?{' '}

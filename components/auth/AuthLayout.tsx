@@ -18,19 +18,25 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
         className="hidden lg:flex w-[45%] flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, #1A1A2E 0%, #16213E 60%, #1F1B4E 100%)' }}
+        // Layered gradients: horizontal fade plus a subtle top fade so the upper edge also blends into the form side
+        style={{
+          background: `
+            linear-gradient(180deg, rgba(245,246,250,0.85) 0%, rgba(245,246,250,0) 35%),
+            linear-gradient(90deg, #EEF1FB 0%, #E4E8FB 55%, #F5F6FA 100%)
+          `
+        }}
       >
         {/* Decorative blobs */}
-        <div className="absolute top-[-80px] right-[-80px] w-[320px] h-[320px] rounded-full bg-brand-purple/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-60px] left-[-60px] w-[260px] h-[260px] rounded-full bg-brand-green/15 blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full bg-brand-purple/10 blur-2xl pointer-events-none" />
+        <div className="absolute top-[-80px] right-[-80px] w-[320px] h-[320px] rounded-full bg-brand-purple/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-60px] left-[-60px] w-[260px] h-[260px] rounded-full bg-brand-green/12 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full bg-brand-purple/8 blur-2xl pointer-events-none" />
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 relative z-10">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-purple to-brand-green flex items-center justify-center">
             <span className="text-white font-bold text-base">C</span>
           </div>
-          <span className="font-display text-2xl text-white">Cvailor</span>
+          <span className="font-display text-2xl text-gray-900">Cvailor</span>
         </Link>
 
         {/* Center quote */}
@@ -41,7 +47,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
             transition={{ delay: 0.4 }}
           >
             {/* Floating CV mini card */}
-            <div className="bg-white/8 border border-white/10 backdrop-blur-sm rounded-2xl p-5 mb-8 max-w-[320px]">
+            <div className="bg-white border border-brand-purple/10 rounded-2xl p-5 mb-8 max-w-[320px] shadow-sm">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-brand-green/30">
                   <img
@@ -51,14 +57,14 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
                   />
                 </div>
                 <div>
-                  <div className="text-white text-sm font-semibold">Sarah Mitchell</div>
-                  <div className="text-white/40 text-xs">Product Designer → Google</div>
+                  <div className="text-gray-900 text-sm font-semibold">Sarah Mitchell</div>
+                  <div className="text-gray-500 text-xs">Product Designer → Google</div>
                 </div>
                 <div className="ml-auto bg-brand-green/15 border border-brand-green/25 rounded-full px-2 py-0.5">
                   <span className="text-brand-green text-[10px] font-semibold">Hired ✓</span>
                 </div>
               </div>
-              <p className="text-white/60 text-xs leading-relaxed">
+              <p className="text-gray-600 text-xs leading-relaxed">
                 &quot;Cvailor rewrote my CV in 30 seconds. I got a callback from Google the same week I applied.&quot;
               </p>
             </div>
@@ -71,8 +77,8 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
                 { value: '30s', label: 'To tailor your CV' },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <div className="text-white font-display text-2xl">{stat.value}</div>
-                  <div className="text-white/40 text-xs mt-0.5">{stat.label}</div>
+                  <div className="text-gray-900 font-display text-2xl">{stat.value}</div>
+                  <div className="text-gray-500 text-xs mt-0.5">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -80,7 +86,7 @@ export default function AuthLayout({ children, title, subtitle }: AuthLayoutProp
         </div>
 
         {/* Bottom */}
-        <div className="text-white/25 text-xs relative z-10">
+        <div className="text-gray-500 text-xs relative z-10">
           © 2025 Cvailor. Built with AI.
         </div>
       </motion.div>
