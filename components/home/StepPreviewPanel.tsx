@@ -1,5 +1,6 @@
 'use client'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 
 // Real photo for the download preview step
 const PHOTO_URL = 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face&auto=format&q=80'
@@ -98,7 +99,7 @@ function DownloadVisual() {
       {/* CV row with real photo */}
       <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3">
         <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-brand-purple/15">
-          <img src={PHOTO_URL} alt="CV" className="w-full h-full object-cover" />
+          <Image src={PHOTO_URL} alt="CV" fill sizes="40px" className="object-cover" />
         </div>
         <div className="flex-1">
           <div className="text-sm font-semibold text-gray-800">Sarah_Mitchell_CV.pdf</div>

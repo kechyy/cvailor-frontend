@@ -40,7 +40,7 @@ export default function FinalCTA() {
                 href="/cv"
                 className="bg-white text-brand-purple font-bold px-8 py-3.5 rounded-xl hover:shadow-xl hover:-translate-y-0.5 transition-all"
               >
-                Get started — it's free
+                Get started — it&apos;s free
               </Link>
               <Link
                 href="/auth/signin"
