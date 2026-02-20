@@ -48,13 +48,13 @@ export default function Hero() {
             {/* CTAs */}
             <div className="flex flex-wrap gap-3 mb-8">
               <Link
-                href="/cv"
+                href="/dashboard"
                 className="bg-brand-purple text-white font-semibold text-base px-8 py-4 rounded-xl hover:bg-brand-purple/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-purple/30 transition-all"
               >
                 Build my CV →
               </Link>
               <Link
-                href="/cv?mode=upload"
+                href="/dashboard"
                 className="bg-white text-gray-700 font-semibold text-base px-8 py-4 rounded-xl border border-gray-200 hover:border-brand-purple/40 hover:-translate-y-0.5 hover:shadow-md transition-all"
               >
                 ↑ Upload existing CV
