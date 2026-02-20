@@ -24,7 +24,7 @@ export default function TemplateClassic({ cv, matchedKeywords = [] }: Props) {
             <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#1A1A2E' }}>Summary</h2>
             <p className="text-gray-600 leading-relaxed">{personal.summary}</p>
           </section>
-        )'
+        )}
         {experience.length > 0 && (
           <section>
             <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1A1A2E' }}>Experience</h2>
@@ -44,7 +44,7 @@ export default function TemplateClassic({ cv, matchedKeywords = [] }: Props) {
               ))}
             </div>
           </section>
-        )'
+        )}
         {education.length > 0 && (
           <section>
             <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#1A1A2E' }}>Education</h2>
@@ -55,7 +55,7 @@ export default function TemplateClassic({ cv, matchedKeywords = [] }: Props) {
               </div>
             ))}
           </section>
-        )'
+        )}
         {skills.length > 0 && (
           <section>
             <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#1A1A2E' }}>Skills</h2>
@@ -65,7 +65,7 @@ export default function TemplateClassic({ cv, matchedKeywords = [] }: Props) {
               ))}
             </div>
           </section>
-        )'
+        )}
       </div>
     </div>
   )

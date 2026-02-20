@@ -1,12 +1,15 @@
 'use client'
 import { motion } from 'framer-motion'
+import type { HTMLMotionProps } from 'framer-motion'
 import { clsx } from 'clsx'
+import type { ReactNode } from 'react'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+type ButtonProps = Omit<HTMLMotionProps<'button'>, 'children'> & {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
-  icon?: React.ReactNode
+  icon?: ReactNode
+  children?: ReactNode
 }
 
 export function Button({ variant = 'primary', size = 'md', loading, icon, children, className, disabled, ...props }: ButtonProps) {
