@@ -6,7 +6,7 @@ export default function Footer() {
           <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-purple to-brand-green flex items-center justify-center">
             <span className="text-white text-xs font-bold">S</span>
           </div>
-          <span className="text-sm font-medium text-gray-600">Cvailor</span>
+          <span className="text-sm font-medium text-gray-600">SmartCV</span>
         </div>
         <p className="text-xs text-gray-400">© 2025 SmartCV. Built with AI.</p>
         <div className="flex gap-6">

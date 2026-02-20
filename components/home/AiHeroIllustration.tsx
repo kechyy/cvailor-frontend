@@ -37,12 +37,11 @@ export default function AiHeroIllustration() {
         {/* Person info — REAL photo */}
         <div className="flex items-center gap-4 mb-5 pb-5 border-b border-gray-50">
           <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-brand-purple/20 ring-offset-2">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={PHOTO_URL}
               alt="CV owner"
-              fill
-              sizes="56px"
-              className="object-cover"
+              className="w-full h-full object-cover"
             />
           </div>
           <div>
@@ -148,12 +147,11 @@ export default function AiHeroIllustration() {
         className="absolute -bottom-4 left-8 bg-white shadow-xl border border-gray-100 rounded-2xl px-4 py-2.5 flex items-center gap-3 z-10 max-w-[220px]"
       >
         <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face&auto=format&q=80"
             alt="User"
-            fill
-            sizes="32px"
-            className="object-cover"
+            className="w-full h-full object-cover"
           />
         </div>
         <div>

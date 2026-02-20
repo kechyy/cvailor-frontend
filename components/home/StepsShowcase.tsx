@@ -57,7 +57,7 @@ export default function StepsShowcase() {
             How it works
           </div>
 
-          <h2 className="font-display text-6xl lg:text-5xl text-gray-900 mb-4">
+          <h2 className="font-display text-5xl lg:text-5xl text-gray-900 mb-4">
             Four steps to your{' '}
             <span
               style={{
