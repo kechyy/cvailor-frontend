@@ -41,3 +41,8 @@ body {
     animation: shimmer 3s linear infinite;
   }
 }
+
+/* Mobile safe area for bottom nav */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

@@ -1,56 +1,35 @@
 'use client'
 import { useState } from 'react'
-import { useFormContext, type RegisterOptions, type FieldError } from 'react-hook-form'
 
 interface InputFieldProps {
-  name: string
   label: string
   type?: string
   placeholder?: string
-  id?: string
+  id: string
   required?: boolean
   autoComplete?: string
-  rules?: RegisterOptions
-  helperText?: string
 }
 
 export default function InputField({
-  name,
-  label,
-  type = 'text',
-  placeholder,
-  id,
-  required,
-  autoComplete,
-  rules,
-  helperText
+  label, type = 'text', placeholder, id, required, autoComplete
 }: InputFieldProps) {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
-  const {
-    register,
-    formState: { errors }
-  } = useFormContext()
-
-  const error = (errors as Record<string, FieldError | undefined>)?.[name]
-  const hasError = Boolean(error)
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id ?? name} className="block text-sm font-semibold text-gray-700">
+      <label htmlFor={id} className="block text-sm font-semibold text-gray-700">
         {label}
       </label>
       <div className="relative">
         <input
-          id={id ?? name}
+          id={id}
           type={inputType}
           placeholder={placeholder}
           required={required}
           autoComplete={autoComplete}
-          aria-invalid={hasError}
-          className={`w-full px-4 py-3 rounded-xl border bg-white text-gray-900 text-sm placeholder:text-gray-300 focus:outline-none focus:ring-2 transition-all ${hasError ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : 'border-gray-200 focus:border-brand-purple focus:ring-brand-purple/15'}`}
-          {...register(name, { required, ...rules })}
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm placeholder:text-gray-300 focus:outline-none focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/15 transition-all"
         />
         {isPassword && (
           <button
@@ -72,12 +51,6 @@ export default function InputField({
           </button>
         )}
       </div>
-      {helperText && !hasError && (
-        <p className="text-xs text-gray-400">{helperText}</p>
-      )}
-      {hasError && (
-        <p className="text-xs text-red-500 font-medium">{error?.message ?? 'Please check this field.'}</p>
-      )}
     </div>
   )
 }

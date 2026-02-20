@@ -1,0 +1,215 @@
+'use client'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import TopBar from '@/components/dashboard/TopBar'
+import AtsScoreMeter from '@/components/dashboard/AtsScoreMeter'
+import KeywordChips from '@/components/dashboard/KeywordChips'
+import CoverLetterPanel from '@/components/dashboard/CoverLetterPanel'
+import TemplateMinimal from '@/components/dashboard/cv-templates/TemplateMinimal'
+import TemplateModern from '@/components/dashboard/cv-templates/TemplateModern'
+import TemplateClean from '@/components/dashboard/cv-templates/TemplateClean'
+import TemplateClassic from '@/components/dashboard/cv-templates/TemplateClassic'
+import TemplateBold from '@/components/dashboard/cv-templates/TemplateBold'
+import TemplateExecutive from '@/components/dashboard/cv-templates/TemplateExecutive'
+import {
+  mockTailoredCV,
+  mockAtsScore,
+  mockScoreBreakdown,
+  mockMatchedKeywords,
+  mockMissingKeywords,
+  mockAtsTips,
+  mockCoverLetter,
+} from '@/mock/previewMock'
+import { useCVBuilderStore } from '@/store/cvBuilderStore'
+import type { TemplateId } from '@/types'
+
+const TEMPLATES: { id: TemplateId; label: string }[] = [
+  { id: 'minimal', label: 'Minimal' },
+  { id: 'clean', label: 'Clean' },
+  { id: 'classic', label: 'Classic' },
+  { id: 'modern', label: 'Modern' },
+  { id: 'bold', label: 'Bold' },
+  { id: 'executive', label: 'Executive' },
+]
+
+function renderTemplate(id: TemplateId, matchedKeywords: string[]) {
+  const props = { cv: mockTailoredCV, matchedKeywords }
+  switch (id) {
+    case 'minimal': return <TemplateMinimal {...props} />
+    case 'modern': return <TemplateModern {...props} />
+    case 'clean': return <TemplateClean {...props} />
+    case 'classic': return <TemplateClassic {...props} />
+    case 'bold': return <TemplateBold {...props} />
+    case 'executive': return <TemplateExecutive {...props} />
+  }
+}
+
+const scoreItems = [
+  { label: 'Keywords match', value: mockScoreBreakdown.keywordsMatch, color: '#5B4FCF' },
+  { label: 'Experience fit', value: mockScoreBreakdown.experienceFit, color: '#2ECC8F' },
+  { label: 'Skills alignment', value: mockScoreBreakdown.skillsAlignment, color: '#F59E0B' },
+  { label: 'Summary strength', value: mockScoreBreakdown.summaryStrength, color: '#8B5CF6' },
+]
+
+export default function PreviewPage() {
+  const { selectedTemplate, setTemplate } = useCVBuilderStore()
+  const [activeTab, setActiveTab] = useState<'insights' | 'cover'>('insights')
+  const [dismissedTips, setDismissedTips] = useState<number[]>([])
+
+  return (
+    <>
+      <TopBar
+        title="Your tailored CV"
+        subtitle="AI has matched your CV to the job description"
+      />
+
+      <div className="grid lg:grid-cols-[1fr_380px] gap-6 items-start">
+
+        {/* Left — CV Preview */}
+        <div className="space-y-4">
+          {/* Template switcher */}
+          <div className="flex gap-2 flex-wrap">
+            {TEMPLATES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTemplate(t.id)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  selectedTemplate === t.id
+                    ? 'bg-brand-purple text-white shadow-sm'
+                    : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* CV render box */}
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedTemplate}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {renderTemplate(selectedTemplate, mockMatchedKeywords)}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3 flex-wrap">
+            <button className="flex items-center gap-2 bg-brand-purple text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-brand-purple/90 hover:shadow-md hover:shadow-brand-purple/20 transition-all">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download PDF
+            </button>
+            <Link href="/dashboard/cv/new"
+              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 text-sm font-semibold px-5 py-2.5 rounded-xl hover:border-gray-300 transition-all">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit CV
+            </Link>
+          </div>
+        </div>
+
+        {/* Right — Insights panel */}
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-6">
+
+          {/* ATS Score meter */}
+          <div className="flex justify-center pt-2">
+            <AtsScoreMeter score={mockAtsScore} />
+          </div>
+
+          {/* Score breakdown */}
+          <div className="space-y-3">
+            {scoreItems.map((item) => (
+              <div key={item.label}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs text-gray-500">{item.label}</span>
+                  <span className="text-xs font-bold" style={{ color: item.color }}>{item.value}%</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${item.value}%` }}
+                    transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
+                    className="h-full rounded-full"
+                    style={{ background: item.color }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tabs */}
+          <div>
+            <div className="flex border-b border-gray-100 mb-4">
+              {(['insights', 'cover'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 pb-2.5 text-xs font-semibold transition-all ${
+                    activeTab === tab
+                      ? 'text-brand-purple border-b-2 border-brand-purple'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  {tab === 'insights' ? 'CV Insights' : 'Cover Letter'}
+                </button>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {activeTab === 'insights' ? (
+                <motion.div key="insights"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="space-y-4"
+                >
+                  <KeywordChips matched={mockMatchedKeywords} missing={mockMissingKeywords} />
+
+                  {/* ATS tips */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 mb-2">AI suggestions</p>
+                    <div className="space-y-2">
+                      <AnimatePresence>
+                        {mockAtsTips.filter((_, i) => !dismissedTips.includes(i)).map((tip, i) => (
+                          <motion.div key={tip}
+                            initial={{ opacity: 1 }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5"
+                          >
+                            <span className="text-blue-500 flex-shrink-0 mt-0.5">💡</span>
+                            <span className="text-xs text-blue-700 flex-1 leading-relaxed">{tip}</span>
+                            <button onClick={() => setDismissedTips((d) => [...d, i])}
+                              className="text-blue-400 hover:text-blue-600 flex-shrink-0 ml-1">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div key="cover"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                >
+                  <CoverLetterPanel
+                    coverLetter={mockCoverLetter}
+                    candidateName={mockTailoredCV.personal.fullName}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
