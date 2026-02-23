@@ -1,71 +1,135 @@
 'use client'
+import type { CSSProperties } from 'react'
 import type { CVData } from '@/types'
+
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
-export default function TemplateExecutive({ cv, matchedKeywords = [] }: Props) {
-  const { personal, experience, education, skills } = cv
-  const textColor = '#FFFFFF'
-  const subColor = 'rgba(255,255,255,0.6)'
+const palette = {
+  header: '#0F2044',
+  gold: '#C9A84C',
+  body: '#1F2937',
+  muted: '#6B7280',
+  panel: '#F8FAFC',
+  border: '#E5E7EB',
+}
+
+const root: CSSProperties = {
+  width: 794,
+  minHeight: 1123,
+  boxSizing: 'border-box',
+  background: '#FFFFFF',
+  fontFamily: 'Inter, -apple-system, sans-serif',
+  color: palette.body,
+  lineHeight: 1.5,
+}
+
+const label = (text: string) => (
+  <div style={{ fontSize: 10.5, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 800, color: palette.gold, marginBottom: 10 }}>{text}</div>
+)
+
+export default function TemplateExecutive({ cv }: Props) {
+  const { personal, experience = [], education = [], skills = [], certifications = [], languages = [] } = cv
+  const achievements = certifications
 
   return (
-    <div className="font-sans text-sm min-h-[1000px]" style={{ background: '#FFFFFF' }}>
-      <div className="p-7" style={{ background: '#1A1A2E', color: textColor }}>
-        <h1 className="text-2xl font-bold mb-1" style={{ color: textColor }}>{personal.fullName}</h1>
-        <p className="text-sm font-medium mb-2" style={{ color: '#B8960C' }}>{personal.jobTitle}</p>
-        <div className="flex flex-wrap gap-3 text-xs" style={{ color: subColor }}>
-          {personal.email && <span>{personal.email}</span>}
-          {personal.phone && <span>{personal.phone}</span>}
-          {personal.location && <span>{personal.location}</span>}
+    <div style={root}>
+      <div style={{ background: palette.header, color: '#FFFFFF', padding: '32px 46px', boxSizing: 'border-box' }}>
+        <div style={{ fontSize: 26, fontWeight: 900 }}>{personal.fullName || 'Your Name'}</div>
+        <div style={{ height: 1, background: palette.gold, margin: '10px 0' }} />
+        <div style={{ fontSize: 13, color: palette.gold, fontWeight: 700 }}>{personal.jobTitle || ''}</div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 10 }}>
+          {[personal.email, personal.phone, personal.location, personal.website, personal.linkedin].filter(Boolean).map((item) => (
+            <span key={item}>{item}</span>
+          ))}
         </div>
       </div>
-      <div className="p-7 space-y-5 bg-white">
-        {personal.summary && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#B8960C' }}>Summary</h2>
-            <p className="text-gray-600 leading-relaxed">{personal.summary}</p>
-          </section>
-        )}
-        {experience.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#B8960C' }}>Experience</h2>
-            <div className="space-y-3">
-              {experience.map((exp) => (
-                <div key={exp.id}>
-                  <div className="flex justify-between mb-0.5">
-                    <span className="font-semibold text-gray-900">{exp.role} · {exp.company}</span>
-                    <span className="text-xs text-gray-400">{exp.startDate} – {exp.endDate}</span>
+
+      <div style={{ display: 'flex', padding: '28px 32px 32px', gap: 20, boxSizing: 'border-box' }}>
+        <div style={{ flex: 0.58 }}>
+          {experience.length > 0 && (
+            <section style={{ marginBottom: 18 }}>
+              {label('Career History')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {experience.map((exp) => (
+                  <div key={exp.id} style={{ borderBottom: `1px solid ${palette.border}`, paddingBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 800, color: palette.header }}>{exp.company}</div>
+                        <div style={{ fontSize: 12.5, fontStyle: 'italic', color: palette.gold, fontWeight: 700 }}>{exp.role}</div>
+                      </div>
+                      <div style={{ fontSize: 10.5, color: palette.muted }}>{exp.startDate} – {exp.endDate}</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                      {exp.bullets?.filter(Boolean).map((b, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 8, fontSize: 11.5 }}>
+                          <div style={{ width: 6, height: 6, background: palette.gold, marginTop: 6 }} />
+                          <span>{b}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <ul className="space-y-0.5 mt-1">
-                    {exp.bullets.filter(Boolean).map((b, i) => (
-                      <li key={i} className="text-xs text-gray-600 pl-3 relative before:content-['·'] before:absolute before:left-0">{b}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-        {education.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#B8960C' }}>Education</h2>
-            {education.map((edu) => (
-              <div key={edu.id} className="flex justify-between text-xs">
-                <span className="font-medium">{edu.degree} in {edu.field} · {edu.institution}</span>
-                <span className="text-gray-400">{edu.year}</span>
+                ))}
               </div>
-            ))}
-          </section>
-        )}
-        {skills.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#B8960C' }}>Skills</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {skills.slice(0,10).map(s => (
-                <span key={s} className="text-xs border px-2 py-0.5 rounded-full text-gray-600" style={{ borderColor: '#B8960C40' }}>{s}</span>
-              ))}
-            </div>
-          </section>
-        )}
+            </section>
+          )}
+
+          {personal.summary && (
+            <section>
+              {label('Executive Summary')}
+              <p style={{ margin: 0, fontSize: 12 }}>{personal.summary}</p>
+            </section>
+          )}
+        </div>
+
+        <div style={{ flex: 0.42, background: palette.panel, borderLeft: `1px solid ${palette.border}`, padding: '18px 18px 18px 20px', boxSizing: 'border-box' }}>
+          {education.length > 0 && (
+            <section style={{ marginBottom: 16 }}>
+              {label('Education')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {education.map((edu) => (
+                  <div key={edu.id} style={{ fontSize: 11.5 }}>
+                    <div style={{ fontWeight: 800 }}>{edu.degree}</div>
+                    <div style={{ color: palette.muted }}>{edu.institution} — {edu.year}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {skills.length > 0 && (
+            <section style={{ marginBottom: 16 }}>
+              {label('Core Competencies')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11.5 }}>
+                {skills.map((skill) => (
+                  <span key={skill}>{skill}</span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {languages.length > 0 && (
+            <section style={{ marginBottom: 16 }}>
+              {label('Languages')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11.5 }}>
+                {languages.map((lang) => <span key={lang}>{lang}</span>)}
+              </div>
+            </section>
+          )}
+
+          {achievements.length > 0 && (
+            <section>
+              {label('Key Achievements')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 11.5 }}>
+                {achievements.map((item) => (
+                  <div key={item} style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ width: 4, height: 4, background: palette.gold, marginTop: 6 }} />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       </div>
     </div>
   )

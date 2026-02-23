@@ -1,72 +1,129 @@
 'use client'
+import type { CSSProperties } from 'react'
 import type { CVData } from '@/types'
+
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
-export default function TemplateClassic({ cv, matchedKeywords = [] }: Props) {
-  const { personal, experience, education, skills } = cv
-  const textColor = '#1A1A2E'
-  const subColor = '#6B7280'
+const palette = {
+  name: '#111827',
+  text: '#374151',
+  muted: '#6B7280',
+  rule: '#111827',
+}
+
+const root: CSSProperties = {
+  width: 794,
+  minHeight: 1123,
+  boxSizing: 'border-box',
+  padding: '56px 58px',
+  background: '#FFFFFF',
+  fontFamily: 'Georgia, Times New Roman, serif',
+  color: palette.text,
+  lineHeight: 1.5,
+}
+
+const sectionTitle = (label: string) => (
+  <div style={{ margin: '0 0 10px' }}>
+    <div style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, textAlign: 'left', color: palette.name }}>{label}</div>
+    <div style={{ height: 1, background: palette.rule, marginTop: 4 }} />
+  </div>
+)
+
+export default function TemplateClassic({ cv }: Props) {
+  const { personal, experience = [], education = [], skills = [], certifications = [], languages = [] } = cv
+  const contacts = [personal.email, personal.phone, personal.location, personal.website, personal.linkedin].filter(Boolean)
 
   return (
-    <div className="font-sans text-sm min-h-[1000px]" style={{ background: '#FFFFFF' }}>
-      <div className="p-7" style={{ background: '#FFFFFF', color: textColor }}>
-        <h1 className="text-2xl font-bold mb-1" style={{ color: textColor }}>{personal.fullName}</h1>
-        <p className="text-sm font-medium mb-2" style={{ color: '#1A1A2E' }}>{personal.jobTitle}</p>
-        <div className="flex flex-wrap gap-3 text-xs" style={{ color: subColor }}>
-          {personal.email && <span>{personal.email}</span>}
-          {personal.phone && <span>{personal.phone}</span>}
-          {personal.location && <span>{personal.location}</span>}
+    <div style={root}>
+      <header style={{ textAlign: 'center' }}>
+        <div style={{ fontVariant: 'small-caps', fontSize: 26, fontWeight: 700, color: palette.name }}>{personal.fullName || 'Your Name'}</div>
+        <div style={{ fontStyle: 'italic', fontSize: 12, color: palette.text, marginTop: 4 }}>{personal.jobTitle || ''}</div>
+        <div style={{ marginTop: 12 }}>
+          <div style={{ height: 2, background: palette.rule }} />
+          <div style={{ height: 0.5, background: palette.rule, marginTop: 4 }} />
         </div>
-      </div>
-      <div className="p-7 space-y-5 bg-white">
-        {personal.summary && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#1A1A2E' }}>Summary</h2>
-            <p className="text-gray-600 leading-relaxed">{personal.summary}</p>
-          </section>
-        )}
-        {experience.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1A1A2E' }}>Experience</h2>
-            <div className="space-y-3">
-              {experience.map((exp) => (
-                <div key={exp.id}>
-                  <div className="flex justify-between mb-0.5">
-                    <span className="font-semibold text-gray-900">{exp.role} · {exp.company}</span>
-                    <span className="text-xs text-gray-400">{exp.startDate} – {exp.endDate}</span>
-                  </div>
-                  <ul className="space-y-0.5 mt-1">
-                    {exp.bullets.filter(Boolean).map((b, i) => (
-                      <li key={i} className="text-xs text-gray-600 pl-3 relative before:content-['·'] before:absolute before:left-0">{b}</li>
-                    ))}
-                  </ul>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', fontSize: 9.5, color: palette.text, marginTop: 8 }}>
+          {contacts.map((c, i) => (
+            <span key={c}>{c}{i < contacts.length - 1 ? ' · ' : ''}</span>
+          ))}
+        </div>
+      </header>
+
+      {personal.summary && (
+        <section style={{ marginTop: 20, marginBottom: 18 }}>
+          {sectionTitle('Professional Summary')}
+          <p style={{ margin: 0, fontSize: 11.5, fontStyle: 'italic' }}>{personal.summary}</p>
+        </section>
+      )}
+
+      {experience.length > 0 && (
+        <section style={{ marginBottom: 18 }}>
+          {sectionTitle('Experience')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {experience.map((exp) => (
+              <div key={exp.id} style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{exp.role}</div>
+                  <div style={{ fontSize: 9.5, color: palette.muted }}>{exp.startDate} – {exp.endDate}</div>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
-        {education.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#1A1A2E' }}>Education</h2>
-            {education.map((edu) => (
-              <div key={edu.id} className="flex justify-between text-xs">
-                <span className="font-medium">{edu.degree} in {edu.field} · {edu.institution}</span>
-                <span className="text-gray-400">{edu.year}</span>
+                <div style={{ fontSize: 11, fontStyle: 'italic', color: '#4B5563', marginTop: 2 }}>{exp.company}</div>
+                <ul style={{ margin: '6px 0 0', paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {exp.bullets?.filter(Boolean).map((b, i) => (
+                    <li key={i} style={{ fontSize: 11, color: palette.text }}>{b}</li>
+                  ))}
+                </ul>
               </div>
             ))}
-          </section>
-        )}
-        {skills.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#1A1A2E' }}>Skills</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {skills.slice(0,10).map(s => (
-                <span key={s} className="text-xs border px-2 py-0.5 rounded-full text-gray-600" style={{ borderColor: '#1A1A2E40' }}>{s}</span>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+          </div>
+        </section>
+      )}
+
+      {education.length > 0 && (
+        <section style={{ marginBottom: 18 }}>
+          {sectionTitle('Education')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {education.map((edu) => (
+              <div key={edu.id} style={{ fontSize: 11.5 }}>
+                <div style={{ fontWeight: 700 }}>{edu.degree} in {edu.field}</div>
+                <div style={{ color: palette.text }}>{edu.institution} — <span style={{ color: palette.muted }}>{edu.year}</span></div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {skills.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          {sectionTitle('Skills & Qualifications')}
+          <div style={{ fontSize: 11, color: palette.text, lineHeight: 1.6 }}>
+            {skills.map((skill, idx) => (
+              <span key={skill}>
+                {skill}{idx < skills.length - 1 ? ' · ' : ''}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {certifications.length > 0 && (
+        <section>
+          {sectionTitle('Certifications')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
+            {certifications.map((cert) => (
+              <span key={cert}>{cert}</span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {languages.length > 0 && (
+        <section style={{ marginTop: 12 }}>
+          {sectionTitle('Languages')}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 11, color: palette.text }}>
+            {languages.map((lang) => <span key={lang}>{lang}</span>)}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

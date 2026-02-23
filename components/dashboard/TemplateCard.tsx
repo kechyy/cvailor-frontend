@@ -1,17 +1,18 @@
 'use client'
-import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+import CVThumbnail from './CVThumbnail'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import type { CVTemplate } from '@/types'
-import { useRouter } from 'next/navigation'
 
-interface TemplateCardProps {
+type Props = {
   template: CVTemplate
-  index?: number
+  isSelected?: boolean
+  showReason?: boolean
 }
 
-export default function TemplateCard({ template, index = 0 }: TemplateCardProps) {
-  const { setTemplate } = useCVBuilderStore()
+export default function TemplateCard({ template, isSelected = false, showReason = false }: Props) {
   const router = useRouter()
+  const { setTemplate } = useCVBuilderStore()
 
   const handleUse = () => {
     setTemplate(template.id)
@@ -19,129 +20,174 @@ export default function TemplateCard({ template, index = 0 }: TemplateCardProps)
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.07 }}
-      className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-gray-200 transition-all group relative"
-    >
+    <div className={`tc-card relative cursor-pointer ${isSelected ? 'tc-selected' : ''}`} onClick={handleUse}>
+      <div className="clickable-overlay" aria-hidden />
+
+      {/* Badges */}
       {template.isAiRecommended && (
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-brand-purple text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-          <motion.span animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}>✦</motion.span>
+        <div className="badge ai-badge">
+          <span style={{ marginRight: 6 }}>✦</span>
           AI Pick
         </div>
       )}
-
-      {/* Mini CV thumbnail */}
-      <div
-        className="h-48 p-4 relative overflow-hidden"
-        style={{ background: template.previewBg }}
-      >
-        <MiniCVPreview template={template} />
-      </div>
-
-      {/* Card info */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-gray-800 text-sm">{template.name}</h3>
-          <div className="w-3 h-3 rounded-full" style={{ background: template.accentColor }} />
+      <div className="badge ats-badge">ATS {template.atsScore}%</div>
+      {isSelected && (
+        <div className="badge check-badge" aria-label="Selected template">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </div>
-        <p className="text-xs text-gray-400 mb-3">{template.description}</p>
-        <div className="flex flex-wrap gap-1 mb-4">
-          {template.bestFor.slice(0, 3).map((tag) => (
-            <span key={tag} className="text-[10px] bg-gray-50 border border-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{tag}</span>
-          ))}
-        </div>
-        <button
-          onClick={handleUse}
-          className="w-full bg-brand-purple text-white text-xs font-semibold py-2.5 rounded-xl hover:bg-brand-purple/90 transition-all hover:shadow-md hover:shadow-brand-purple/20"
-        >
-          Use this template
-        </button>
-      </div>
-    </motion.div>
-  )
-}
+      )}
 
-// Mini static CV preview per template style
-function MiniCVPreview({ template }: { template: CVTemplate }) {
-  const id = template.id
-  const accent = template.accentColor
+      <CVThumbnail templateId={template.id} cv={template.sampleCV} width={190} showShadow={false} />
 
-  if (id === 'modern') {
-    return (
-      <div className="flex h-full gap-2 scale-90 origin-top-left">
-        <div className="w-1/3 rounded-lg h-full" style={{ background: accent, opacity: 0.9 }}>
-          <div className="p-2 space-y-2">
-            <div className="w-8 h-8 rounded-full bg-white/30 mx-auto" />
-            <div className="h-1.5 bg-white/40 rounded-full" />
-            <div className="h-1 bg-white/25 rounded-full" />
-            {[60,80,50,70].map((w,i) => <div key={i} className="h-1 bg-white/20 rounded-full" style={{width:`${w}%`}} />)}
-          </div>
+      <div className="footer">
+        <div className="footer-top">
+          <span className="name">{template.name}</span>
+          <span className="accent-dot" style={{ background: template.accentColor }} />
         </div>
-        <div className="flex-1 space-y-2 pt-1">
-          <div className="h-2 bg-gray-200 rounded-full w-3/4" />
-          <div className="h-1.5 bg-gray-100 rounded-full w-1/2" />
-          <div className="h-px bg-gray-200 my-1" />
-          {[90,70,80,60,75].map((w,i) => <div key={i} className="h-1 bg-gray-100 rounded-full" style={{width:`${w}%`}} />)}
-        </div>
-      </div>
-    )
-  }
-
-  if (id === 'bold') {
-    return (
-      <div className="space-y-2 scale-90 origin-top-left">
-        <div className="h-14 rounded-xl" style={{ background: `linear-gradient(135deg, ${accent}, #5B4FCF)` }}>
-          <div className="p-3 space-y-1">
-            <div className="h-2 bg-white/60 rounded-full w-1/2" />
-            <div className="h-1.5 bg-white/40 rounded-full w-1/3" />
-          </div>
-        </div>
-        <div className="space-y-1.5 px-1">
-          {[90,70,85,60].map((w,i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className="h-1.5 bg-gray-100 rounded-full flex-1" />
-              <div className="h-1.5 rounded-full" style={{ width: `${w * 0.4}px`, background: accent }} />
-            </div>
+        <div className="tags">
+          {template.bestFor.slice(0, 2).map((tag) => (
+            <span key={tag}>{tag}</span>
           ))}
         </div>
       </div>
-    )
-  }
 
-  if (id === 'executive') {
-    return (
-      <div className="space-y-2 scale-90 origin-top-left">
-        <div className="h-12 rounded-xl" style={{ background: '#1A1A2E' }}>
-          <div className="p-3 flex items-center gap-2">
-            <div className="h-2 bg-white/60 rounded-full flex-1" />
-            <div className="h-1.5 rounded-full w-8" style={{ background: '#B8960C' }} />
-          </div>
-        </div>
-        <div className="space-y-1.5 px-1">
-          <div className="h-px" style={{ background: '#B8960C' }} />
-          {[85,70,90,60,75].map((w,i) => <div key={i} className="h-1 bg-gray-100 rounded-full" style={{width:`${w}%`}} />)}
-        </div>
-      </div>
-    )
-  }
+      <button type="button" className="tc-btn" onClick={(e) => { e.stopPropagation(); handleUse() }}>
+        Use This Template
+      </button>
 
-  // Default: minimal / clean / classic
-  return (
-    <div className="space-y-2 scale-90 origin-top-left">
-      <div className="pb-2" style={{ borderBottom: `2px solid ${accent}` }}>
-        <div className="h-2.5 bg-gray-700 rounded-full w-1/2 mb-1" />
-        <div className="h-1.5 bg-gray-300 rounded-full w-1/3" />
-      </div>
-      <div className="space-y-1">
-        <div className="h-1.5 rounded-full" style={{ background: accent, width: '30%', opacity: 0.6 }} />
-        {[90,75,60,80].map((w,i) => <div key={i} className="h-1 bg-gray-100 rounded-full" style={{width:`${w}%`}} />)}
-      </div>
-      <div className="space-y-1 pt-1">
-        <div className="h-1.5 rounded-full" style={{ background: accent, width: '35%', opacity: 0.6 }} />
-        {[85,70,65].map((w,i) => <div key={i} className="h-1 bg-gray-100 rounded-full" style={{width:`${w}%`}} />)}
-      </div>
+      {showReason && (
+        <p className="reason">{template.industryReason}</p>
+      )}
+
+      <style jsx>{`
+        .tc-card {
+          border: 1.5px solid #E5E7EB;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #FFFFFF;
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .tc-card:hover {
+          border-color: #5B4FCF;
+          box-shadow: 0 6px 24px rgba(91,79,207,0.14);
+        }
+        .tc-card:hover .tc-btn {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: all;
+        }
+        .tc-selected {
+          border: 2.5px solid #2ECC8F;
+        }
+        .clickable-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+        }
+        .badge {
+          position: absolute;
+          z-index: 3;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.2px;
+          padding: 6px 10px;
+          border-radius: 999px;
+        }
+        .ai-badge {
+          top: 10px;
+          right: 10px;
+          background: #5B4FCF;
+          color: #FFFFFF;
+          box-shadow: 0 8px 18px rgba(91,79,207,0.3);
+        }
+        .ats-badge {
+          bottom: 12px;
+          left: 12px;
+          background: rgba(255,255,255,0.78);
+          color: #111827;
+          backdrop-filter: blur(6px);
+          border: 1px solid rgba(229,231,235,0.8);
+        }
+        .check-badge {
+          bottom: 12px;
+          right: 12px;
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: #2ECC8F;
+          display: grid;
+          place-items: center;
+          box-shadow: 0 6px 14px rgba(46,204,143,0.35);
+        }
+        .footer {
+          position: relative;
+          z-index: 2;
+          background: #FFFFFF;
+          border-top: 1px solid #F3F4F6;
+          padding: 10px 12px 12px;
+        }
+        .footer-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 6px;
+        }
+        .name {
+          font-size: 12px;
+          font-weight: 600;
+          color: #111827;
+        }
+        .accent-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .tags {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .tags span {
+          font-size: 9px;
+          color: #9CA3AF;
+          padding: 4px 8px;
+          border: 1px solid #E5E7EB;
+          border-radius: 8px;
+          background: #F9FAFB;
+        }
+        .tc-btn {
+          position: absolute;
+          left: 50%;
+          bottom: 60px;
+          transform: translate(-50%, 4px);
+          padding: 9px 16px;
+          background: #5B4FCF;
+          color: #FFFFFF;
+          font-size: 11px;
+          font-weight: 700;
+          border: none;
+          border-radius: 10px;
+          box-shadow: 0 12px 30px rgba(91,79,207,0.22);
+          opacity: 0;
+          transition: opacity 0.18s ease, transform 0.18s ease;
+          pointer-events: none;
+          z-index: 4;
+        }
+        .tc-btn:hover {
+          background: #5144c4;
+        }
+        .reason {
+          margin: 6px 10px 10px;
+          font-size: 10px;
+          color: #9CA3AF;
+        }
+      `}</style>
     </div>
   )
 }

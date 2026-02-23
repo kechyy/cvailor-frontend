@@ -63,9 +63,21 @@ export interface SavedCV {
   cvData?: CVData
 }
 
-export type TemplateId = 'minimal' | 'clean' | 'classic' | 'modern' | 'bold' | 'executive'
+export type TemplateId =
+  | 'classic'
+  | 'compact'
+  | 'minimal'
+  | 'clean'
+  | 'executive'
+  | 'polished'
+  | 'modern'
+  | 'contemporary'
+  | 'timeline'
+  | 'bold'
+  | 'creative'
 export type JobCategory = 'tech' | 'creative' | 'finance' | 'healthcare' | 'sales' | 'executive' | 'general'
 export type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'executive'
+export type LayoutType = 'single' | 'sidebar-left' | 'sidebar-right'
 
 export interface CVTemplate {
   id: TemplateId
@@ -73,9 +85,13 @@ export interface CVTemplate {
   description: string
   bestFor: string[]
   categories: JobCategory[]
+  experienceLevels: ExperienceLevel[]
   accentColor: string
-  previewBg: string
   isAiRecommended?: boolean
+  atsScore: number
+  layout: LayoutType
+  industryReason: string
+  sampleCV: CVData
 }
 
 export interface DashboardStats {
