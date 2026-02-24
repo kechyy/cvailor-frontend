@@ -1,17 +1,14 @@
 'use client'
 import type { CSSProperties } from 'react'
 import type { CVData, TemplateId } from '@/types'
-import TemplateMinimal from './cv-templates/TemplateMinimal'
-import TemplateClean from './cv-templates/TemplateClean'
 import TemplateClassic from './cv-templates/TemplateClassic'
 import TemplateModern from './cv-templates/TemplateModern'
-import TemplateBold from './cv-templates/TemplateBold'
+import TemplateProfessional from './cv-templates/TemplateProfessional'
 import TemplateExecutive from './cv-templates/TemplateExecutive'
-import TemplateCompact from './cv-templates/TemplateCompact'
-import TemplatePolished from './cv-templates/TemplatePolished'
-import TemplateContemporary from './cv-templates/TemplateContemporary'
-import TemplateTimeline from './cv-templates/TemplateTimeline'
+import TemplateAcademic from './cv-templates/TemplateAcademic'
+import TemplateHealthcare from './cv-templates/TemplateHealthcare'
 import TemplateCreative from './cv-templates/TemplateCreative'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 type Props = {
   templateId: TemplateId
@@ -32,28 +29,32 @@ const innerBase: CSSProperties = {
   userSelect: 'none',
 }
 
-const templateMap: Record<TemplateId, (props: { cv: CVData; matchedKeywords?: string[] }) => JSX.Element> = {
-  minimal: (props) => <TemplateMinimal {...props} />,
-  clean: (props) => <TemplateClean {...props} />,
+const TEMPLATE_MAP: Record<TemplateId, (props: { cv: CVData; matchedKeywords?: string[] }) => JSX.Element> = {
   classic: (props) => <TemplateClassic {...props} />,
   modern: (props) => <TemplateModern {...props} />,
-  bold: (props) => <TemplateBold {...props} />,
+  professional: (props) => <TemplateProfessional {...props} />,
   executive: (props) => <TemplateExecutive {...props} />,
-  compact: (props) => <TemplateCompact {...props} />,
-  polished: (props) => <TemplatePolished {...props} />,
-  contemporary: (props) => <TemplateContemporary {...props} />,
-  timeline: (props) => <TemplateTimeline {...props} />,
+  academic: (props) => <TemplateAcademic {...props} />,
+  healthcare: (props) => <TemplateHealthcare {...props} />,
   creative: (props) => <TemplateCreative {...props} />,
 }
 
 export default function CVThumbnail({ templateId, cv, width, matchedKeywords, showShadow = true }: Props) {
-  const scale = width / A4_WIDTH
-  const height = Math.round(A4_HEIGHT * scale)
-  const renderTemplate = templateMap[templateId] || templateMap.minimal
+  const widthScale = width / A4_WIDTH
+  const [scale, setScale] = useState(widthScale)
+  const [height, setHeight] = useState(Math.round(A4_HEIGHT * widthScale))
+  const innerRef = useRef<HTMLDivElement>(null)
+  const renderTemplate = TEMPLATE_MAP[templateId] || TEMPLATE_MAP.classic
+
+  useLayoutEffect(() => {
+    const ws = width / A4_WIDTH
+    setScale(ws)
+    setHeight(Math.round(A4_HEIGHT * ws))
+  }, [width, templateId, cv])
 
   return (
     <div style={{ width, height, overflow: 'hidden', position: 'relative', boxShadow: showShadow ? '0 10px 26px rgba(17,24,39,0.18)' : 'none', borderRadius: 8 }}>
-      <div style={{ ...innerBase, transform: `scale(${scale})` }}>
+      <div ref={innerRef} style={{ ...innerBase, transform: `scale(${scale})` }}>
         {renderTemplate({ cv, matchedKeywords })}
       </div>
     </div>

@@ -1,128 +1,104 @@
 'use client'
-import type { CSSProperties } from 'react'
 import type { CVData } from '@/types'
 
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
-const palette = {
-  name: '#111827',
-  text: '#374151',
-  muted: '#6B7280',
-  rule: '#111827',
-}
-
-const root: CSSProperties = {
-  width: 794,
-  minHeight: 1123,
-  boxSizing: 'border-box',
-  padding: '56px 58px',
-  background: '#FFFFFF',
-  fontFamily: 'Georgia, Times New Roman, serif',
-  color: palette.text,
-  lineHeight: 1.5,
-}
-
-const sectionTitle = (label: string) => (
-  <div style={{ margin: '0 0 10px' }}>
-    <div style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, textAlign: 'left', color: palette.name }}>{label}</div>
-    <div style={{ height: 1, background: palette.rule, marginTop: 4 }} />
+const sectionHeader = (title: string) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, marginTop: 2 }}>
+    <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: '#111827', whiteSpace: 'nowrap' }}>{title}</span>
+    <div style={{ flex: 1, height: 1, background: '#D1D5DB' }} />
   </div>
 )
 
 export default function TemplateClassic({ cv }: Props) {
-  const { personal, experience = [], education = [], skills = [], certifications = [], languages = [] } = cv
-  const contacts = [personal.email, personal.phone, personal.location, personal.website, personal.linkedin].filter(Boolean)
+  const { personal, experience = [], education = [], skills = [], languages = [], certifications = [] } = cv
 
   return (
-    <div style={root}>
-      <header style={{ textAlign: 'center' }}>
-        <div style={{ fontVariant: 'small-caps', fontSize: 26, fontWeight: 700, color: palette.name }}>{personal.fullName || 'Your Name'}</div>
-        <div style={{ fontStyle: 'italic', fontSize: 12, color: palette.text, marginTop: 4 }}>{personal.jobTitle || ''}</div>
-        <div style={{ marginTop: 12 }}>
-          <div style={{ height: 2, background: palette.rule }} />
-          <div style={{ height: 0.5, background: palette.rule, marginTop: 4 }} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', fontSize: 9.5, color: palette.text, marginTop: 8 }}>
-          {contacts.map((c, i) => (
-            <span key={c}>{c}{i < contacts.length - 1 ? ' · ' : ''}</span>
+    <div style={{
+      fontFamily: 'Georgia, "Times New Roman", serif',
+      color: '#111827',
+      background: '#FFFFFF',
+      width: 794,
+      minHeight: 1123,
+      padding: '52px 60px',
+      boxSizing: 'border-box',
+      fontSize: 10.5,
+      lineHeight: 1.55,
+    }}>
+      <div style={{ textAlign: 'center', marginBottom: 22, paddingBottom: 16, borderBottom: '2px solid #111827' }}>
+        <h1 style={{ fontSize: 26, fontWeight: 700, margin: '0 0 5px', letterSpacing: 1.5, textTransform: 'uppercase' }}>{personal.fullName || 'Your Name'}</h1>
+        {personal.jobTitle && <p style={{ fontSize: 11, color: '#4B5563', margin: '0 0 10px', fontStyle: 'italic' }}>{personal.jobTitle}</p>}
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 4, fontSize: 9.5, color: '#6B7280' }}>
+          {[personal.email, personal.phone, personal.location, personal.linkedin, personal.website].filter(Boolean).map((v, i, arr) => (
+            <span key={v}>
+              {v}
+              {i < arr.length - 1 && <span style={{ margin: '0 8px', color: '#D1D5DB' }}>|</span>}
+            </span>
           ))}
         </div>
-      </header>
+      </div>
 
       {personal.summary && (
-        <section style={{ marginTop: 20, marginBottom: 18 }}>
-          {sectionTitle('Professional Summary')}
-          <p style={{ margin: 0, fontSize: 11.5, fontStyle: 'italic' }}>{personal.summary}</p>
-        </section>
+        <div style={{ marginBottom: 20 }}>
+          {sectionHeader('Professional Summary')}
+          <p style={{ color: '#374151', lineHeight: 1.7, margin: 0, fontStyle: 'italic', fontSize: 10.5 }}>{personal.summary}</p>
+        </div>
       )}
 
       {experience.length > 0 && (
-        <section style={{ marginBottom: 18 }}>
-          {sectionTitle('Experience')}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {experience.map((exp) => (
-              <div key={exp.id} style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700 }}>{exp.role}</div>
-                  <div style={{ fontSize: 9.5, color: palette.muted }}>{exp.startDate} – {exp.endDate}</div>
-                </div>
-                <div style={{ fontSize: 11, fontStyle: 'italic', color: '#4B5563', marginTop: 2 }}>{exp.company}</div>
-                <ul style={{ margin: '6px 0 0', paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {exp.bullets?.filter(Boolean).map((b, i) => (
-                    <li key={i} style={{ fontSize: 11, color: palette.text }}>{b}</li>
-                  ))}
-                </ul>
+        <div style={{ marginBottom: 20 }}>
+          {sectionHeader('Professional Experience')}
+          {experience.map((exp) => (
+            <div key={exp.id} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 1 }}>
+                <span style={{ fontWeight: 700, fontSize: 11.5 }}>{exp.role}</span>
+                <span style={{ fontSize: 9.5, color: '#6B7280', flexShrink: 0, marginLeft: 8 }}>{exp.startDate} – {exp.endDate}</span>
               </div>
-            ))}
-          </div>
-        </section>
+              <div style={{ fontStyle: 'italic', color: '#4B5563', fontSize: 10.5, marginBottom: 5 }}>{exp.company}</div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {exp.bullets?.filter(Boolean).slice(0, 4).map((b, i) => (
+                  <li key={i} style={{ color: '#374151', marginBottom: 3, lineHeight: 1.55, fontSize: 10 }}>{b}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       )}
 
       {education.length > 0 && (
-        <section style={{ marginBottom: 18 }}>
-          {sectionTitle('Education')}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {education.map((edu) => (
-              <div key={edu.id} style={{ fontSize: 11.5 }}>
-                <div style={{ fontWeight: 700 }}>{edu.degree} in {edu.field}</div>
-                <div style={{ color: palette.text }}>{edu.institution} — <span style={{ color: palette.muted }}>{edu.year}</span></div>
+        <div style={{ marginBottom: 20 }}>
+          {sectionHeader('Education')}
+          {education.map((edu) => (
+            <div key={edu.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: 10.5 }}>{edu.degree} in {edu.field}</span>
+                <span style={{ color: '#6B7280', fontSize: 10, marginLeft: 8, fontStyle: 'italic' }}>{edu.institution}</span>
               </div>
-            ))}
-          </div>
-        </section>
+              <span style={{ color: '#9CA3AF', fontSize: 9.5, flexShrink: 0 }}>{edu.year}</span>
+            </div>
+          ))}
+        </div>
       )}
 
       {skills.length > 0 && (
-        <section style={{ marginBottom: 16 }}>
-          {sectionTitle('Skills & Qualifications')}
-          <div style={{ fontSize: 11, color: palette.text, lineHeight: 1.6 }}>
-            {skills.map((skill, idx) => (
-              <span key={skill}>
-                {skill}{idx < skills.length - 1 ? ' · ' : ''}
-              </span>
-            ))}
-          </div>
-        </section>
+        <div style={{ marginBottom: certifications.length > 0 || languages.length > 0 ? 20 : 0 }}>
+          {sectionHeader('Skills & Expertise')}
+          <p style={{ color: '#374151', lineHeight: 1.8, margin: 0, fontSize: 10 }}>{skills.join('   ·   ')}</p>
+        </div>
       )}
 
       {certifications.length > 0 && (
-        <section>
-          {sectionTitle('Certifications')}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11 }}>
-            {certifications.map((cert) => (
-              <span key={cert}>{cert}</span>
-            ))}
-          </div>
-        </section>
+        <div style={{ marginBottom: languages.length > 0 ? 20 : 0 }}>
+          {sectionHeader('Certifications')}
+          <p style={{ color: '#374151', lineHeight: 1.8, margin: 0, fontSize: 10 }}>{certifications.join('   ·   ')}</p>
+        </div>
       )}
 
       {languages.length > 0 && (
-        <section style={{ marginTop: 12 }}>
-          {sectionTitle('Languages')}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 11, color: palette.text }}>
-            {languages.map((lang) => <span key={lang}>{lang}</span>)}
-          </div>
-        </section>
+        <div>
+          {sectionHeader('Languages')}
+          <p style={{ color: '#374151', lineHeight: 1.8, margin: 0, fontSize: 10 }}>{languages.join('   ·   ')}</p>
+        </div>
       )}
     </div>
   )

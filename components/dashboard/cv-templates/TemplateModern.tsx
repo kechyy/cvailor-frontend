@@ -1,138 +1,124 @@
 'use client'
-import type { CSSProperties } from 'react'
 import type { CVData } from '@/types'
 
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
-const palette = {
-  sidebarTop: '#5B21B6',
-  sidebarBottom: '#4C1D95',
-  sidebarText: '#FFFFFF',
-  sidebarAccent: '#A78BFA',
-  mainText: '#1F2937',
-  muted: '#6B7280',
-}
-
-const root: CSSProperties = {
-  width: 794,
-  minHeight: 1123,
-  boxSizing: 'border-box',
-  display: 'flex',
-  background: '#FFFFFF',
-  fontFamily: 'Inter, -apple-system, sans-serif',
-  color: palette.mainText,
-  lineHeight: 1.5,
-}
-
-const skillWidths = [92, 85, 88, 78, 90, 82, 75, 87, 80, 84, 79, 86]
+const headerRow = (title: string, accent = '#2563EB') => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+    <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: accent, whiteSpace: 'nowrap' }}>{title}</span>
+    <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
+  </div>
+)
 
 export default function TemplateModern({ cv }: Props) {
-  const { personal, experience = [], education = [], certifications = [], skills = [], languages = [] } = cv
+  const { personal, experience = [], education = [], skills = [], languages = [], certifications = [] } = cv
 
   return (
-    <div style={root}>
-      <aside style={{ width: 220, background: `linear-gradient(180deg, ${palette.sidebarTop} 0%, ${palette.sidebarBottom} 100%)`, color: palette.sidebarText, padding: '32px 22px', boxSizing: 'border-box' }}>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>{personal.fullName || 'Your Name'}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{personal.jobTitle || ''}</div>
+    <div style={{
+      width: 794,
+      minHeight: 1123,
+      boxSizing: 'border-box',
+      padding: '46px 54px 50px',
+      background: '#FFFFFF',
+      fontFamily: 'Inter, -apple-system, Helvetica Neue, sans-serif',
+      color: '#111827',
+      lineHeight: 1.55,
+    }}>
+      <header style={{ marginBottom: 22 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, color: '#0F172A' }}>{personal.fullName || 'Your Name'}</div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: '#2563EB', marginTop: 4 }}>{personal.jobTitle || ''}</div>
+        <div style={{ width: 40, height: 2, background: '#2563EB', marginTop: 10, marginBottom: 12 }} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 10, color: '#6B7280' }}>
+          {[personal.email, personal.phone, personal.location, personal.linkedin, personal.website].filter(Boolean).map((item, i) => (
+            <span key={item}>{item}{i < (personal.email ? 5 : 4) - 1 ? '' : ''}</span>
+          ))}
         </div>
+      </header>
 
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Contact</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5 }}>
-            {[personal.email, personal.phone, personal.location, personal.website, personal.linkedin].filter(Boolean).map((item) => (
-              <span key={item}>{item}</span>
+      {personal.summary && (
+        <section style={{ marginBottom: 18 }}>
+          {headerRow('Summary')}
+          <p style={{ margin: 0, fontSize: 12, color: '#1F2937' }}>{personal.summary}</p>
+        </section>
+      )}
+
+      {experience.length > 0 && (
+        <section style={{ marginBottom: 20 }}>
+          {headerRow('Experience')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {experience.map((exp) => (
+              <div key={exp.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>{exp.role}</div>
+                  <div style={{ fontSize: 10, color: '#6B7280', flexShrink: 0 }}>{exp.startDate} – {exp.endDate}</div>
+                </div>
+                <div style={{ fontSize: 11, color: '#2563EB', fontWeight: 600 }}>{exp.company}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 4 }}>
+                  {exp.bullets?.filter(Boolean).slice(0, 4).map((b, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 8, fontSize: 10.2, color: '#374151' }}>
+                      <span style={{ color: '#2563EB', fontWeight: 700 }}>▸</span>
+                      <span>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-        </div>
+        </section>
+      )}
 
-        {skills.length > 0 && (
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Key Skills</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {skills.slice(0, 12).map((skill, idx) => (
-                <div key={skill}>
-                  <div style={{ fontSize: 10.5, color: palette.sidebarText, marginBottom: 4 }}>{skill}</div>
-                  <div style={{ height: 3, background: 'rgba(255,255,255,0.2)', borderRadius: 2 }}>
-                    <div style={{ height: 3, width: `${skillWidths[idx % skillWidths.length]}%`, background: palette.sidebarAccent, borderRadius: 2 }} />
-                  </div>
+      {education.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          {headerRow('Education')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {education.map((edu) => (
+              <div key={edu.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+                <div>
+                  <div style={{ fontWeight: 700 }}>{edu.degree} in {edu.field}</div>
+                  <div style={{ color: '#6B7280' }}>{edu.institution}</div>
                 </div>
-              ))}
-            </div>
+                <div style={{ color: '#9CA3AF' }}>{edu.year}</div>
+              </div>
+            ))}
           </div>
-        )}
+        </section>
+      )}
 
-        {languages.length > 0 && (
-          <div>
-            <div style={{ fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 800, marginBottom: 8 }}>Languages</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5 }}>
-              {languages.map((lang) => <span key={lang}>{lang}</span>)}
-            </div>
+      {certifications.length > 0 && (
+        <section style={{ marginBottom: 14 }}>
+          {headerRow('Certifications')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5, color: '#374151' }}>
+            {certifications.map((c) => <span key={c}>{c}</span>)}
           </div>
-        )}
-      </aside>
+        </section>
+      )}
 
-      <main style={{ flex: 1, padding: '32px 34px 34px', boxSizing: 'border-box' }}>
-        {personal.summary && (
-          <section style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: 800, color: palette.sidebarTop }}>Profile</div>
-            <p style={{ margin: '6px 0 0', fontSize: 12.5 }}>{personal.summary}</p>
-          </section>
-        )}
+      {skills.length > 0 && (
+        <section style={{ marginBottom: languages.length > 0 ? 12 : 0 }}>
+          {headerRow('Skills')}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {skills.map((skill) => (
+              <span key={skill} style={{
+                fontSize: 10.5,
+                padding: '6px 10px',
+                borderRadius: 4,
+                border: '1px solid #BFDBFE',
+                background: '#EFF6FF',
+                color: '#1D4ED8',
+              }}>{skill}</span>
+            ))}
+          </div>
+        </section>
+      )}
 
-        {experience.length > 0 && (
-          <section style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: 800, color: palette.sidebarTop, marginBottom: 8 }}>Experience</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {experience.map((exp) => (
-                <div key={exp.id} style={{ padding: '12px 14px', borderRadius: 10, background: '#F9FAFB' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontSize: 13, fontWeight: 800 }}>{exp.role}</div>
-                    <div style={{ fontSize: 10.5, color: palette.muted }}>{exp.startDate} – {exp.endDate}</div>
-                  </div>
-                  <div style={{ fontSize: 11.5, color: palette.sidebarTop, fontWeight: 700, marginTop: 2 }}>{exp.company}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
-                    {exp.bullets?.filter(Boolean).map((b, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 8, fontSize: 11.5, color: palette.mainText }}>
-                        <div style={{ width: 3, height: 3, background: palette.sidebarTop, marginTop: 6 }} />
-                        <span>{b}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {education.length > 0 && (
-          <section style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: 800, color: palette.sidebarTop, marginBottom: 8 }}>Education</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {education.map((edu) => (
-                <div key={edu.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5 }}>
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{edu.degree} in {edu.field}</div>
-                    <div style={{ color: palette.muted }}>{edu.institution}</div>
-                  </div>
-                  <div style={{ color: palette.muted }}>{edu.year}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {certifications.length > 0 && (
-          <section>
-            <div style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: 800, color: palette.sidebarTop, marginBottom: 8 }}>Certifications</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11.5 }}>
-              {certifications.map((cert) => (
-                <span key={cert}>{cert}</span>
-              ))}
-            </div>
-          </section>
-        )}
-      </main>
+      {languages.length > 0 && (
+        <section>
+          {headerRow('Languages')}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 10.5, color: '#111827' }}>
+            {languages.map((lang) => <span key={lang}>{lang}</span>)}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

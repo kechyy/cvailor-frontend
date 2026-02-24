@@ -3,6 +3,7 @@ import React, { useMemo } from 'react'
 import { templates, sampleCv, type CvTemplateMeta } from '@/src/templates/registry'
 import { TemplateCard } from './TemplateCard'
 import { useTemplateStore } from '@/src/store/templateStore'
+import { TemplatePreviewModal } from './TemplatePreviewModal'
 
 const professions = Array.from(new Set(templates.flatMap((t) => t.professions)))
 const stacks = Array.from(new Set(templates.flatMap((t) => t.stacks)))
@@ -47,6 +48,7 @@ export function TemplateGrid() {
 
   return (
     <div className="space-y-8">
+      <TemplatePreviewModal />
       <div className="flex flex-wrap gap-4 items-center">
         <div className="space-y-1">
           <label className="text-sm text-gray-600">Profession</label>
@@ -103,4 +105,3 @@ export function TemplateGrid() {
     </div>
   )
 }
-

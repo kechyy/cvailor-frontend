@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CVThumbnail from './CVThumbnail'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
@@ -13,14 +14,33 @@ type Props = {
 export default function TemplateCard({ template, isSelected = false, showReason = false }: Props) {
   const router = useRouter()
   const { setTemplate } = useCVBuilderStore()
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [thumbWidth, setThumbWidth] = useState<number>(190)
 
   const handleUse = () => {
     setTemplate(template.id)
     router.push('/dashboard/cv/new')
   }
 
+  // Keep thumbnail width in sync with the card's actual width so the preview fills the container.
+  useEffect(() => {
+    if (!cardRef.current) return
+    const update = (width: number) => setThumbWidth(Math.max(160, Math.round(width))) // guard against tiny widths
+    update(cardRef.current.clientWidth)
+    const obs = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width
+      if (w) update(w)
+    })
+    obs.observe(cardRef.current)
+    return () => obs.disconnect()
+  }, [])
+
   return (
-    <div className={`tc-card relative cursor-pointer ${isSelected ? 'tc-selected' : ''}`} onClick={handleUse}>
+    <div
+      ref={cardRef}
+      className={`tc-card relative cursor-pointer ${isSelected ? 'tc-selected' : ''}`}
+      onClick={handleUse}
+    >
       <div className="clickable-overlay" aria-hidden />
 
       {/* Badges */}
@@ -39,7 +59,7 @@ export default function TemplateCard({ template, isSelected = false, showReason 
         </div>
       )}
 
-      <CVThumbnail templateId={template.id} cv={template.sampleCV} width={190} showShadow={false} />
+      <CVThumbnail templateId={template.id} cv={template.sampleCV} width={thumbWidth} showShadow={false} />
 
       <div className="footer">
         <div className="footer-top">
