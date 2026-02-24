@@ -1,126 +1,183 @@
 'use client'
 import type { CVData } from '@/types'
-
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
-const label = (text: string, color = '#F59E0B') => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-    <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color, whiteSpace: 'nowrap' }}>{text}</span>
-    <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
-  </div>
-)
-
 export default function TemplateProfessional({ cv }: Props) {
-  const { personal, experience = [], education = [], skills = [], languages = [], certifications = [] } = cv
+  const { personal, experience, education, skills, languages = [], certifications = [] } = cv
+
+  const MainHeader = ({ title }: { title: string }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+      <span style={{
+        fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const,
+        letterSpacing: 2, color: '#1E293B', whiteSpace: 'nowrap' as const
+      }}>
+        {title}
+      </span>
+      <div style={{ flex: 1, height: 1, background: '#E5E7EB' }} />
+    </div>
+  )
 
   return (
-    <div style={{ width: 794, minHeight: 1123, boxSizing: 'border-box', display: 'flex', fontFamily: 'Inter, -apple-system, Helvetica Neue, sans-serif', color: '#1F2937', lineHeight: 1.55 }}>
-      {/* Sidebar */}
-      <aside style={{ width: 220, background: '#1E293B', color: '#FFFFFF', padding: '28px 20px', boxSizing: 'border-box', flexShrink: 0, minHeight: 1123 }}>
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{personal.fullName || 'Your Name'}</div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.72)', fontWeight: 500, marginTop: 4 }}>{personal.jobTitle || ''}</div>
-          <div style={{ height: 2, background: '#F59E0B', marginTop: 12 }} />
+    <div style={{
+      fontFamily: 'Inter, -apple-system, sans-serif',
+      display: 'flex', width: 794, minHeight: 1123,
+      boxSizing: 'border-box' as const, fontSize: 10.5,
+    }}>
+
+      {/* ── SIDEBAR — dark slate ── */}
+      <div style={{
+        width: 218, background: '#1E293B', color: '#fff',
+        padding: '36px 20px 36px 24px',
+        flexShrink: 0, minHeight: 1123,
+        display: 'flex', flexDirection: 'column' as const, gap: 0,
+      }}>
+
+        {/* Name & Title */}
+        <div style={{ marginBottom: 20, paddingBottom: 18, borderBottom: '2px solid #F59E0B' }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.25, marginBottom: 5 }}>
+            {personal.fullName || 'Your Name'}
+          </div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: 500, lineHeight: 1.4 }}>
+            {personal.jobTitle || ''}
+          </div>
         </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 800, color: '#F59E0B', marginBottom: 8 }}>Contact</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5, color: 'rgba(255,255,255,0.9)' }}>
-            {[personal.email, personal.phone, personal.location, personal.linkedin, personal.website].filter(Boolean).map((item) => (
-              <span key={item}>{item}</span>
+        {/* Contact */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{
+            fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const,
+            letterSpacing: 2, color: '#F59E0B', marginBottom: 10
+          }}>
+            Contact
+          </div>
+          {[personal.email, personal.phone, personal.location, personal.linkedin]
+            .filter(Boolean).map(v => (
+              <div key={v} style={{
+                fontSize: 10, color: 'rgba(255,255,255,0.78)',
+                marginBottom: 8, wordBreak: 'break-all' as const, lineHeight: 1.55
+              }}>
+                {v}
+              </div>
+            ))}
+        </div>
+
+        {/* Skills */}
+        {skills.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const,
+              letterSpacing: 2, color: '#F59E0B', marginBottom: 10
+            }}>
+              Expertise
+            </div>
+            {skills.slice(0, 10).map(s => (
+              <div key={s} style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                marginBottom: 6
+              }}>
+                <span style={{ color: '#F59E0B', fontSize: 10, flexShrink: 0 }}>▸</span>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.82)', lineHeight: 1.55 }}>{s}</span>
+              </div>
             ))}
           </div>
-        </div>
-
-        {skills.length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 800, color: '#F59E0B', marginBottom: 8 }}>Skills</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5 }}>
-              {skills.map((skill) => (
-                <div key={skill} style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ color: '#F59E0B', fontWeight: 700 }}>▸</span>
-                  <span>{skill}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         )}
 
+        {/* Languages */}
         {languages.length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 800, color: '#F59E0B', marginBottom: 8 }}>Languages</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5 }}>
-              {languages.map((lang) => <span key={lang}>{lang}</span>)}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const,
+              letterSpacing: 2, color: '#F59E0B', marginBottom: 10
+            }}>
+              Languages
             </div>
+            {languages.slice(0, 3).map(l => (
+              <div key={l} style={{ fontSize: 10, color: 'rgba(255,255,255,0.78)', marginBottom: 8, lineHeight: 1.55 }}>
+                {l}
+              </div>
+            ))}
           </div>
         )}
 
+        {/* Certifications */}
         {certifications.length > 0 && (
-          <div>
-            <div style={{ fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 800, color: '#F59E0B', marginBottom: 8 }}>Certifications</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10.5 }}>
-              {certifications.map((c) => (
-                <div key={c} style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ color: '#F59E0B', fontWeight: 700 }}>▸</span>
-                  <span>{c}</span>
-                </div>
-              ))}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, textTransform: 'uppercase' as const,
+              letterSpacing: 2, color: '#F59E0B', marginBottom: 10
+            }}>
+              Certifications
             </div>
+            {certifications.slice(0, 3).map(c => (
+              <div key={c} style={{ fontSize: 10, color: 'rgba(255,255,255,0.78)', marginBottom: 8, lineHeight: 1.55 }}>
+                {c}
+              </div>
+            ))}
           </div>
         )}
-      </aside>
+      </div>
 
-      {/* Main column */}
-      <main style={{ flex: 1, padding: '32px 36px 34px', boxSizing: 'border-box' }}>
+      {/* ── MAIN COLUMN ── */}
+      <div style={{ flex: 1, padding: '36px 40px 36px 32px' }}>
+
+        {/* Summary */}
         {personal.summary && (
-          <section style={{ marginBottom: 18 }}>
-            {label('Summary', '#1E293B')}
-            <p style={{ margin: 0, fontSize: 12, color: '#1F2937' }}>{personal.summary}</p>
-          </section>
+          <div style={{ marginBottom: 20 }}>
+            <MainHeader title="Profile" />
+            <p style={{ color: '#4B5563', lineHeight: 1.7, margin: 0, fontSize: 10 }}>
+              {personal.summary}
+            </p>
+          </div>
         )}
 
+        {/* Experience */}
         {experience.length > 0 && (
-          <section style={{ marginBottom: 18 }}>
-            {label('Experience', '#1E293B')}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {experience.map((exp) => (
-                <div key={exp.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>{exp.role}</div>
-                    <div style={{ fontSize: 10, color: '#6B7280' }}>{exp.startDate} – {exp.endDate}</div>
-                  </div>
-                  <div style={{ fontSize: 11, color: '#F59E0B', fontWeight: 700 }}>{exp.company}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 2 }}>
-                    {exp.bullets?.filter(Boolean).slice(0, 4).map((b, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 8, fontSize: 10.2, color: '#374151' }}>
-                        <span style={{ color: '#F59E0B', fontWeight: 700 }}>▸</span>
-                        <span>{b}</span>
-                      </div>
-                    ))}
-                  </div>
+          <div style={{ marginBottom: 20 }}>
+            <MainHeader title="Experience" />
+            {experience.map(exp => (
+              <div key={exp.id} style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 1 }}>
+                  <span style={{ fontWeight: 700, fontSize: 11, color: '#111827' }}>{exp.role}</span>
+                  <span style={{ fontSize: 9, color: '#9CA3AF', flexShrink: 0, marginLeft: 8 }}>
+                    {exp.startDate} – {exp.endDate}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </section>
+                <div style={{ color: '#F59E0B', fontSize: 10, fontWeight: 600, marginBottom: 5 }}>
+                  {exp.company}
+                </div>
+                <div style={{ paddingLeft: 0 }}>
+                  {exp.bullets.filter(Boolean).slice(0, 4).map((b, i) => (
+                    <div key={i} style={{
+                      display: 'flex', gap: 7, marginBottom: 3, alignItems: 'flex-start'
+                    }}>
+                      <span style={{ color: '#F59E0B', fontSize: 10, flexShrink: 0, marginTop: 1 }}>▸</span>
+                      <span style={{ color: '#4B5563', fontSize: 9.5, lineHeight: 1.55 }}>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
+        {/* Education */}
         {education.length > 0 && (
-          <section>
-            {label('Education', '#1E293B')}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {education.map((edu) => (
-                <div key={edu.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{edu.degree} in {edu.field}</div>
-                    <div style={{ color: '#6B7280' }}>{edu.institution}</div>
-                  </div>
-                  <div style={{ color: '#9CA3AF' }}>{edu.year}</div>
+          <div>
+            <MainHeader title="Education" />
+            {education.map(edu => (
+              <div key={edu.id} style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontWeight: 700, fontSize: 10.5, color: '#111827' }}>
+                    {edu.degree} in {edu.field}
+                  </span>
+                  <span style={{ fontSize: 9, color: '#9CA3AF', flexShrink: 0 }}>{edu.year}</span>
                 </div>
-              ))}
-            </div>
-          </section>
+                <div style={{ color: '#6B7280', fontSize: 10 }}>{edu.institution}</div>
+              </div>
+            ))}
+          </div>
         )}
-      </main>
+      </div>
     </div>
   )
 }

@@ -9,26 +9,24 @@ import type { JobCategory } from '@/types'
 type Filter = { label: string; value: 'all' | JobCategory; description: string }
 
 const filters: Filter[] = [
-  { label: 'All', value: 'all', description: 'All templates, sorted by ATS strength' },
-  { label: 'Tech', value: 'tech', description: 'Product, engineering, and data roles' },
-  { label: 'Creative', value: 'creative', description: 'Design, media, content, and marketing' },
-  { label: 'Finance', value: 'finance', description: 'Banking, consulting, and corporate finance' },
-  { label: 'Healthcare', value: 'healthcare', description: 'Clinicians, health ops, and med-tech' },
-  { label: 'Sales', value: 'sales', description: 'Sales, partnerships, success, and GTM' },
-  { label: 'Executive', value: 'executive', description: 'Director, VP, and C-suite profiles' },
-  { label: 'General', value: 'general', description: 'Universal layouts for any industry' },
+  { label: 'All', value: 'all', description: 'All 7 professional CV archetypes' },
+  { label: 'Tech', value: 'tech', description: 'ATS-optimised for FAANG, startups & engineering roles' },
+  { label: 'Finance', value: 'finance', description: 'Conservative serif for banking, law & accounting' },
+  { label: 'General', value: 'general', description: 'Professional & Academic — works across industries' },
+  { label: 'Academic', value: 'general', description: 'Education-first layouts for research & academia' },
+  { label: 'Executive', value: 'executive', description: 'Premium layouts for Director, VP & C-suite roles' },
+  { label: 'Healthcare', value: 'healthcare', description: 'Clean, readable — passes NHS & hospital ATS systems' },
+  { label: 'Creative', value: 'creative', description: 'Visual layouts for design, UX, media & branding' },
 ]
 
 export default function TemplatesPage() {
   const { selectedTemplate } = useCVBuilderStore()
   const [activeFilter, setActiveFilter] = useState<Filter>(filters[0])
 
-  const filtered = useMemo(
-    () => activeFilter.value === 'all'
-      ? mockTemplates
-      : mockTemplates.filter((t) => t.categories.includes(activeFilter.value)),
-    [activeFilter.value]
-  )
+  const filtered = useMemo(() => {
+    if (activeFilter.value === 'all') return mockTemplates
+    return mockTemplates.filter((t) => t.categories.includes(activeFilter.value as JobCategory))
+  }, [activeFilter.value])
 
   const recommended = mockTemplates.find((t) => t.isAiRecommended)
 

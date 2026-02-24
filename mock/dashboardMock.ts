@@ -22,9 +22,9 @@ export const mockStats: DashboardStats = {
 }
 
 export const mockCVs: SavedCV[] = [
-  { id: 'cv_01', fileName: 'Sarah_Google_SWE.pdf', company: 'Google', role: 'Senior Software Engineer', atsScore: 94, template: 'minimal', createdAt: '2025-02-18T09:00:00Z' },
-  { id: 'cv_02', fileName: 'Sarah_Meta_Design.pdf', company: 'Meta', role: 'UX Lead', atsScore: 81, template: 'bold', createdAt: '2025-02-15T14:30:00Z' },
-  { id: 'cv_03', fileName: 'Sarah_Startup_PM.pdf', company: 'TechCo', role: 'Product Manager', atsScore: 76, template: 'modern', createdAt: '2025-02-13T11:00:00Z' },
+  { id: 'cv_01', fileName: 'Sarah_Google_SWE.pdf', company: 'Google', role: 'Senior Software Engineer', atsScore: 94, template: 'modern', createdAt: '2025-02-18T09:00:00Z' },
+  { id: 'cv_02', fileName: 'Sarah_Meta_Design.pdf', company: 'Meta', role: 'UX Lead', atsScore: 81, template: 'creative', createdAt: '2025-02-15T14:30:00Z' },
+  { id: 'cv_03', fileName: 'Sarah_Startup_PM.pdf', company: 'TechCo', role: 'Product Manager', atsScore: 76, template: 'professional', createdAt: '2025-02-13T11:00:00Z' },
 ]
 
 export const mockInsights: DashboardInsights = {

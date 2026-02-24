@@ -6,16 +6,12 @@ import TopBar from '@/components/dashboard/TopBar'
 import AtsScoreMeter from '@/components/dashboard/AtsScoreMeter'
 import KeywordChips from '@/components/dashboard/KeywordChips'
 import CoverLetterPanel from '@/components/dashboard/CoverLetterPanel'
-import TemplateMinimal from '@/components/dashboard/cv-templates/TemplateMinimal'
-import TemplateModern from '@/components/dashboard/cv-templates/TemplateModern'
-import TemplateClean from '@/components/dashboard/cv-templates/TemplateClean'
 import TemplateClassic from '@/components/dashboard/cv-templates/TemplateClassic'
-import TemplateBold from '@/components/dashboard/cv-templates/TemplateBold'
+import TemplateModern from '@/components/dashboard/cv-templates/TemplateModern'
+import TemplateProfessional from '@/components/dashboard/cv-templates/TemplateProfessional'
 import TemplateExecutive from '@/components/dashboard/cv-templates/TemplateExecutive'
-import TemplateCompact from '@/components/dashboard/cv-templates/TemplateCompact'
-import TemplatePolished from '@/components/dashboard/cv-templates/TemplatePolished'
-import TemplateContemporary from '@/components/dashboard/cv-templates/TemplateContemporary'
-import TemplateTimeline from '@/components/dashboard/cv-templates/TemplateTimeline'
+import TemplateAcademic from '@/components/dashboard/cv-templates/TemplateAcademic'
+import TemplateHealthcare from '@/components/dashboard/cv-templates/TemplateHealthcare'
 import TemplateCreative from '@/components/dashboard/cv-templates/TemplateCreative'
 import {
   mockTailoredCV,
@@ -30,34 +26,26 @@ import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import type { TemplateId } from '@/types'
 
 const TEMPLATES: { id: TemplateId; label: string }[] = [
-  { id: 'minimal', label: 'Minimal' },
-  { id: 'compact', label: 'Compact' },
-  { id: 'clean', label: 'Clean' },
   { id: 'classic', label: 'Classic' },
   { id: 'modern', label: 'Modern' },
-  { id: 'polished', label: 'Polished' },
-  { id: 'contemporary', label: 'Contemporary' },
-  { id: 'timeline', label: 'Timeline' },
-  { id: 'bold', label: 'Bold' },
-  { id: 'creative', label: 'Creative' },
+  { id: 'professional', label: 'Professional' },
   { id: 'executive', label: 'Executive' },
+  { id: 'academic', label: 'Academic' },
+  { id: 'healthcare', label: 'Healthcare' },
+  { id: 'creative', label: 'Creative' },
 ]
 
 function renderTemplate(id: TemplateId, matchedKeywords: string[]) {
   const props = { cv: mockTailoredCV, matchedKeywords }
   switch (id) {
-    case 'compact': return <TemplateCompact {...props} />
-    case 'minimal': return <TemplateMinimal {...props} />
-    case 'modern': return <TemplateModern {...props} />
-    case 'clean': return <TemplateClean {...props} />
     case 'classic': return <TemplateClassic {...props} />
-    case 'polished': return <TemplatePolished {...props} />
-    case 'contemporary': return <TemplateContemporary {...props} />
-    case 'timeline': return <TemplateTimeline {...props} />
-    case 'bold': return <TemplateBold {...props} />
-    case 'creative': return <TemplateCreative {...props} />
+    case 'modern': return <TemplateModern {...props} />
+    case 'professional': return <TemplateProfessional {...props} />
     case 'executive': return <TemplateExecutive {...props} />
-    default: return <TemplateMinimal {...props} />
+    case 'academic': return <TemplateAcademic {...props} />
+    case 'healthcare': return <TemplateHealthcare {...props} />
+    case 'creative': return <TemplateCreative {...props} />
+    default: return <TemplateModern {...props} />
   }
 }
 

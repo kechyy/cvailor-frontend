@@ -10,7 +10,6 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['finance'],
     experienceLevels: ['mid', 'senior', 'executive'],
     accentColor: '#111827',
-    previewBg: '#FFFFFF',
     atsScore: 99,
     layout: 'single',
     industryReason:
@@ -25,7 +24,6 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['tech'],
     experienceLevels: ['entry', 'mid', 'senior'],
     accentColor: '#2563EB',
-    previewBg: '#FFFFFF',
     isAiRecommended: true,
     atsScore: 98,
     layout: 'single',
@@ -41,7 +39,6 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['general', 'sales'],
     experienceLevels: ['mid', 'senior'],
     accentColor: '#1E293B',
-    previewBg: '#1E293B',
     atsScore: 93,
     layout: 'sidebar-left',
     industryReason:
@@ -56,9 +53,8 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['executive'],
     experienceLevels: ['executive'],
     accentColor: '#C9A84C',
-    previewBg: '#0F2044',
     atsScore: 95,
-    layout: 'double',
+    layout: 'single',
     industryReason:
       'McKinsey and executive search firms expect commanding navy-on-white presence. Gold accents signal premium seniority. Two-panel body separates career history from credentials.',
     sampleCV: mockCVData,
@@ -71,7 +67,6 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['general'],
     experienceLevels: ['entry', 'mid', 'senior', 'executive'],
     accentColor: '#374151',
-    previewBg: '#FFFFFF',
     atsScore: 99,
     layout: 'single',
     industryReason:
@@ -86,7 +81,6 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['healthcare'],
     experienceLevels: ['entry', 'mid', 'senior'],
     accentColor: '#0D9488',
-    previewBg: '#FFFFFF',
     atsScore: 97,
     layout: 'single',
     industryReason:
@@ -101,7 +95,6 @@ export const mockTemplates: CVTemplate[] = [
     categories: ['creative'],
     experienceLevels: ['entry', 'mid', 'senior'],
     accentColor: '#FB7185',
-    previewBg: '#FFFBF5',
     atsScore: 82,
     layout: 'single',
     industryReason:

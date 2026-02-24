@@ -16,6 +16,8 @@ export default function TemplateCard({ template, isSelected = false, showReason 
   const { setTemplate } = useCVBuilderStore()
   const cardRef = useRef<HTMLDivElement>(null)
   const [thumbWidth, setThumbWidth] = useState<number>(190)
+  const bestForVisible = template.bestFor.slice(0, 2)
+  const bestForOverflow = Math.max(0, template.bestFor.length - bestForVisible.length)
 
   const handleUse = () => {
     setTemplate(template.id)
@@ -67,9 +69,10 @@ export default function TemplateCard({ template, isSelected = false, showReason 
           <span className="accent-dot" style={{ background: template.accentColor }} />
         </div>
         <div className="tags">
-          {template.bestFor.slice(0, 2).map((tag) => (
+          {bestForVisible.map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
+          {bestForOverflow > 0 && <span>{`+${bestForOverflow}`}</span>}
         </div>
       </div>
 
@@ -88,6 +91,9 @@ export default function TemplateCard({ template, isSelected = false, showReason 
           overflow: hidden;
           background: #FFFFFF;
           transition: border-color 0.18s ease, box-shadow 0.18s ease;
+          height: 430px;
+          display: flex;
+          flex-direction: column;
         }
         .tc-card:hover {
           border-color: #5B4FCF;
@@ -180,6 +186,7 @@ export default function TemplateCard({ template, isSelected = false, showReason 
           border: 1px solid #E5E7EB;
           border-radius: 8px;
           background: #F9FAFB;
+          white-space: nowrap;
         }
         .tc-btn {
           position: absolute;

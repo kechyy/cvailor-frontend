@@ -28,12 +28,22 @@ export function TemplateThumbnail({ template, sample }: Props) {
   return (
     <div
       ref={containerRef}
-      className="w-full aspect-[794/1123] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 relative"
+      style={{
+        width: '100%',
+        aspectRatio: '794 / 1123',
+        borderRadius: 12,
+        overflow: 'hidden',
+        background: '#F3F4F6',
+        border: '1px solid #E5E7EB',
+        position: 'relative',
+      }}
     >
       <div
-        className="absolute top-0 left-0"
         style={{
-          width: 100%,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: 794,
           height: 1123,
           transform: `scale(${scale})`,
           transformOrigin: 'top left',

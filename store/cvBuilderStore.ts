@@ -62,7 +62,7 @@ export const useCVBuilderStore = create<CVBuilderState>((set, get) => ({
   languages: [],
   certifications: [],
   jobDescription: '',
-  selectedTemplate: 'minimal',
+  selectedTemplate: 'modern',
 
   setStep: (step) => set({ currentStep: step }),
   nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 5) })),
@@ -110,7 +110,7 @@ export const useCVBuilderStore = create<CVBuilderState>((set, get) => ({
       languages: [],
       certifications: [],
       jobDescription: '',
-      selectedTemplate: 'minimal',
+      selectedTemplate: 'modern',
     }),
 
   getCVData: (): CVData => {
