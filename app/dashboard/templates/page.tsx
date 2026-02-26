@@ -30,11 +30,6 @@ export default function TemplatesPage() {
     }
   }, [selectedFlow, setSelectedFlow])
 
-  // Guard: flow must be selected (home choice). Otherwise send home.
-  if (typeof window !== 'undefined' && !selectedFlow) {
-    router.replace('/')
-  }
-
   const filtered = useMemo(() => {
     if (activeFilter.value === 'all') return mockTemplates
     return mockTemplates.filter((t) => t.categories.includes(activeFilter.value as JobCategory))
