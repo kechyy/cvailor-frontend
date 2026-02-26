@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 import { mockUser } from '@/mock/dashboardMock'
+import { useCVBuilderStore } from '@/store/cvBuilderStore'
 
 const navItems = [
   { label: 'Overview',   href: '/dashboard',            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
@@ -15,6 +16,12 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const { setSelectedFlow, resetFlow } = useCVBuilderStore()
+
+  const startBuild = () => {
+    resetFlow()
+    setSelectedFlow('build')
+  }
   return (
     <motion.aside
       initial={{ x: -20, opacity: 0 }}
@@ -38,6 +45,11 @@ export default function Sidebar() {
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
             <Link key={item.href} href={item.soon ? '#' : item.href}
+              onClick={() => {
+                if (item.href === '/dashboard/templates') {
+                  startBuild()
+                }
+              }}
               className={clsx(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group',
                 isActive
@@ -58,7 +70,8 @@ export default function Sidebar() {
 
       {/* Build new CV CTA */}
       <div className="px-3 pb-3">
-        <Link href="/dashboard/cv/new"
+        <Link href="/dashboard/templates"
+          onClick={startBuild}
           className="flex items-center justify-center gap-2 w-full bg-brand-purple text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-brand-purple/90 transition-all hover:shadow-md hover:shadow-brand-purple/20">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Build new CV

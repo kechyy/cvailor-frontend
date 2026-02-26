@@ -1,7 +1,6 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import CVThumbnail from './CVThumbnail'
+import A4PreviewFrame from './A4PreviewFrame'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import type { CVTemplate } from '@/types'
 
@@ -9,46 +8,32 @@ type Props = {
   template: CVTemplate
   isSelected?: boolean
   showReason?: boolean
+  onPreview?: (templateId: CVTemplate['id']) => void
 }
 
-export default function TemplateCard({ template, isSelected = false, showReason = false }: Props) {
+export default function TemplateCard({ template, isSelected = false, showReason = false, onPreview }: Props) {
   const router = useRouter()
-  const { setTemplate } = useCVBuilderStore()
-  const cardRef = useRef<HTMLDivElement>(null)
-  const [thumbWidth, setThumbWidth] = useState<number>(190)
+  const { setTemplate, selectedFlow, setSelectedTemplateId } = useCVBuilderStore()
   const bestForVisible = template.bestFor.slice(0, 2)
   const bestForOverflow = Math.max(0, template.bestFor.length - bestForVisible.length)
 
   const handleUse = () => {
     setTemplate(template.id)
-    router.push('/dashboard/cv/new')
+    setSelectedTemplateId(template.id)
+    if (selectedFlow === 'upload') router.push('/dashboard/preview-filled')
+    else router.push('/dashboard/editor')
   }
 
   const handlePreview = (e: React.MouseEvent) => {
     e.stopPropagation()
     setTemplate(template.id)
-    router.push('/dashboard/cv/preview')
+    setSelectedTemplateId(template.id)
+    if (onPreview) onPreview(template.id)
+    else router.push('/dashboard/cv/preview')
   }
 
-  // Keep thumbnail width in sync with the card's actual width so the preview fills the container.
-  useEffect(() => {
-    if (!cardRef.current) return
-    const update = (width: number) => setThumbWidth(Math.max(160, Math.round(width))) // guard against tiny widths
-    update(cardRef.current.clientWidth)
-    const obs = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect.width
-      if (w) update(w)
-    })
-    obs.observe(cardRef.current)
-    return () => obs.disconnect()
-  }, [])
-
   return (
-    <div
-      ref={cardRef}
-      className={`tc-card relative cursor-pointer ${isSelected ? 'tc-selected' : ''}`}
-      onClick={handleUse}
-    >
+    <div className={`tc-card relative cursor-pointer ${isSelected ? 'tc-selected' : ''}`} onClick={handleUse}>
       <div className="clickable-overlay" aria-hidden />
 
       {/* Badges */}
@@ -67,7 +52,7 @@ export default function TemplateCard({ template, isSelected = false, showReason 
         </div>
       )}
 
-      <CVThumbnail templateId={template.id} cv={template.sampleCV} width={thumbWidth} showShadow={false} />
+      <A4PreviewFrame templateId={template.id} cv={template.sampleCV} shadow={false} />
 
       <div className="footer">
         <div className="footer-top">

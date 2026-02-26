@@ -1,11 +1,19 @@
 'use client'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import AiHeroIllustration from './AiHeroIllustration'
 
 const badges = ['No sign-up needed', 'AI-powered', '30 seconds']
 
 export default function Hero() {
+  const { setSelectedFlow, resetFlow } = useCVBuilderStore()
+
+  const startFlow = (flow: 'build' | 'upload') => {
+    resetFlow()
+    setSelectedFlow(flow)
+  }
+
   return (
     <section className="min-h-screen flex items-center pt-16 pb-2 px-6">
       <div className="max-w-6xl mx-auto w-full">
@@ -48,13 +56,15 @@ export default function Hero() {
             {/* CTAs */}
             <div className="flex flex-wrap gap-3 mb-8">
               <Link
-                href="/dashboard"
+                href="/dashboard/templates"
+                onClick={() => startFlow('build')}
                 className="bg-brand-purple text-white font-semibold text-base px-8 py-4 rounded-xl hover:bg-brand-purple/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-purple/30 transition-all"
               >
                 Build my CV →
               </Link>
               <Link
-                href="/dashboard"
+                href="/dashboard/upload"
+                onClick={() => startFlow('upload')}
                 className="bg-white text-gray-700 font-semibold text-base px-8 py-4 rounded-xl border border-gray-200 hover:border-brand-purple/40 hover:-translate-y-0.5 hover:shadow-md transition-all"
               >
                 ↑ Upload existing CV

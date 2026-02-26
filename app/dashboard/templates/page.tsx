@@ -1,5 +1,5 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import TemplateCard from '@/components/dashboard/TemplateCard'
 import { mockTemplates } from '@/mock/templatesMock'
@@ -20,8 +20,20 @@ const filters: Filter[] = [
 ]
 
 export default function TemplatesPage() {
-  const { selectedTemplate } = useCVBuilderStore()
+  const { selectedTemplate, selectedFlow, setSelectedFlow } = useCVBuilderStore()
   const [activeFilter, setActiveFilter] = useState<Filter>(filters[0])
+
+  useEffect(() => {
+    if (!selectedFlow) {
+      // Default to build flow if user navigates directly from dashboard nav
+      setSelectedFlow('build')
+    }
+  }, [selectedFlow, setSelectedFlow])
+
+  // Guard: flow must be selected (home choice). Otherwise send home.
+  if (typeof window !== 'undefined' && !selectedFlow) {
+    router.replace('/')
+  }
 
   const filtered = useMemo(() => {
     if (activeFilter.value === 'all') return mockTemplates
