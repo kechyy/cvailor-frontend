@@ -31,10 +31,10 @@ export default function TemplatesPage() {
   const recommended = mockTemplates.find((t) => t.isAiRecommended)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#EEF2F5' }}>
-      <div className="max-w-5xl mx-auto px-6 py-10">
+    <div style={{ minHeight: '100vh' }}>
+      <div className="w-full px-6 py-10">
         <div className="mb-6">
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#0F172A' }}>Please select a template for your CV.</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 600, color: '#0F172A' }}>Templates</h1>
           <p style={{ fontSize: 14, color: '#6B7280', marginTop: 6 }}>You can always change it later.</p>
         </div>
 
@@ -48,12 +48,11 @@ export default function TemplatesPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 12,
-              background: '#F4F1FF',
+              background: 'transparent',
               border: '1px solid #E1DBFF',
               color: '#4C3FB1',
-              borderRadius: 14,
-              padding: '14px 16px',
-              boxShadow: '0 10px 24px rgba(91,79,207,0.12)',
+              borderRadius: 12,
+              padding: '12px 14px',
             }}>
               <span style={{ fontSize: 18 }}>🤖</span>
               <div style={{ flex: 1 }}>
