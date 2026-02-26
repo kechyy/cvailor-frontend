@@ -23,47 +23,87 @@ export type CvTemplateMeta = {
 }
 
 export const sampleCv: SampleCvData = {
-  name: 'Jordan Kim',
-  title: 'Senior Product Engineer',
+  name: 'Amelia Rodriguez',
+  title: 'Staff Software Engineer · Payments & Growth',
   summary:
-    'Product-minded engineer with 8+ years building delightful, resilient web experiences. Leads cross-functional teams, ships fast, and obsesses over quality.',
+    'Staff-level engineer with 11+ years building reliable payment and growth systems at global-scale consumer companies. Blends product sense with platform rigor: cut checkout latency by 37%, lifted activation by 18 ppts across 5 markets, and led multi-team programs that ship safely on tight timelines.',
   contact: {
-    email: 'jordan.kim@email.com',
-    phone: '+1 (415) 555-1234',
+    email: 'amelia.rodriguez@hey.com',
+    phone: '+1 (415) 889-4418',
     location: 'San Francisco, CA',
-    website: 'jordankim.dev',
+    website: 'amelia.codes',
   },
   skills: [
-    { name: 'React', level: 90 },
-    { name: 'TypeScript', level: 85 },
-    { name: 'Node.js', level: 80 },
-    { name: 'Design Systems', level: 75 },
-    { name: 'Data Viz', level: 70 },
-    { name: 'Leadership', level: 80 },
+    { name: 'TypeScript', level: 92 },
+    { name: 'React / Next.js', level: 90 },
+    { name: 'Node.js', level: 88 },
+    { name: 'Distributed Systems', level: 82 },
+    { name: 'Payments (PCI / SCA)', level: 86 },
+    { name: 'System Design', level: 88 },
+    { name: 'API Design (REST / GraphQL)', level: 84 },
+    { name: 'Data Modeling', level: 80 },
+    { name: 'Experimentation & Growth', level: 83 },
+    { name: 'Observability (OpenTelemetry)', level: 78 },
+    { name: 'Leadership & Mentorship', level: 90 },
+    { name: 'Accessibility', level: 76 },
   ],
   experience: [
     {
-      company: 'Northwind Labs',
-      role: 'Lead Frontend Engineer',
-      period: '2021 — Present',
+      company: 'Stripe',
+      role: 'Staff Software Engineer · Payments Platform',
+      period: '2022 — Present',
       bullets: [
-        'Built a design system adopted by 6 product squads, reducing UI defects by 35%.',
-        'Led migration to Next.js + edge rendering, cutting TTFB by 42%.',
-        'Mentored 5 engineers; instituted accessibility reviews and perf budgets.',
+        'Led rebuild of card-present checkout flow; p95 latency dropped from 620ms to 390ms and auth success rose +2.8 ppts.',
+        'Designed multi-region idempotency service (Go + Redis + Kafka); eliminated double-charges during failovers.',
+        'Drove SCA compliance program across 5 EU markets; chargeback rate reduced 14% while approval held steady.',
+        'Mentor to 6 engineers; launched weekly design reviews that cut integration incidents by 21%.',
       ],
     },
     {
-      company: 'Atlas Analytics',
-      role: 'Senior Software Engineer',
-      period: '2018 — 2021',
+      company: 'Airbnb',
+      role: 'Senior Software Engineer · Guest Growth',
+      period: '2018 — 2022',
       bullets: [
-        'Shipped interactive analytics surfaces with D3 + React, increasing retention 12%.',
-        'Drove experimentation program; set up feature flagging and dashboards.',
+        'Owned search-to-book funnel; shipped ranking + caching changes that increased conversion 9.7% YoY.',
+        'Built experimentation platform guardrails (feature flags, CUPED); reduced false positives by 18%.',
+        'Co-led SEO landing rebuild in Next.js with edge rendering; organic sign-ups +12% and TTFB -41%.',
+        'Partnered with Design on accessibility remediation; Lighthouse accessibility scores improved from 73 to 94.',
+      ],
+    },
+    {
+      company: 'Dropbox',
+      role: 'Software Engineer · Collaboration',
+      period: '2015 — 2018',
+      bullets: [
+        'Implemented real-time presence and comments in Paper (React + WebSockets); DAU in active docs +8%.',
+        'Refactored legacy Backbone UI to React/TypeScript; cut bundle size by 28% and error rate by 30%.',
+        'Built abuse-detection signals pipeline (Kafka → Flink); reduced spam shares by 35% in 3 months.',
+        'On-call lead for collaboration services; drove MTTR from 47 to 22 minutes with runbooks and SLOs.',
+      ],
+    },
+    {
+      company: 'MIT Media Lab',
+      role: 'Graduate Research Assistant',
+      period: '2013 — 2015',
+      bullets: [
+        'Researched multi-modal interfaces; published 2 papers (CHI, UIST) on adaptive UIs for low-vision users.',
+        'Prototyped wearable navigation aid (Python, OpenCV); 87% task success in pilot with 18 participants.',
+        'Taught lab section for “Software Design Studio”; student project pass rate 98%.',
+      ],
+    },
+    {
+      company: 'Freelance',
+      role: 'Full‑Stack Engineer',
+      period: '2011 — 2013',
+      bullets: [
+        'Built and maintained 7 production Rails apps for SMB clients; average launch-to-revenue window 6 weeks.',
+        'Introduced CI/CD (CircleCI) and error monitoring (Sentry) to client stacks, cutting post-launch bugs by 25%.',
       ],
     },
   ],
   education: [
-    { school: 'Carnegie Mellon University', degree: 'BS, Information Systems', period: '2014 — 2018' },
+    { school: 'Massachusetts Institute of Technology (MIT)', degree: 'MEng, Electrical Engineering & Computer Science', period: '2013 — 2015' },
+    { school: 'University of Texas at Austin', degree: 'BS, Computer Science', period: '2009 — 2013' },
   ],
   photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
 }
@@ -525,4 +565,3 @@ export const templates: CvTemplateMeta[] = [
     Component: Classic,
   },
 ]
-

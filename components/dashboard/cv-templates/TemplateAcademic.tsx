@@ -1,5 +1,6 @@
 'use client'
 import type { CVData } from '@/types'
+import { BASE_FONT_SIZE_PX, BASE_LINE_HEIGHT, FONT_SERIF_ATS } from './standards'
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
 export default function TemplateAcademic({ cv }: Props) {
@@ -19,10 +20,10 @@ export default function TemplateAcademic({ cv }: Props) {
 
   return (
     <div style={{
-      fontFamily: 'Inter, -apple-system, sans-serif',
+      fontFamily: FONT_SERIF_ATS,
       color: '#111827', background: '#FFFFFF',
       width: 794, minHeight: 1123,
-      boxSizing: 'border-box' as const, fontSize: 10,
+      boxSizing: 'border-box' as const, fontSize: BASE_FONT_SIZE_PX, lineHeight: BASE_LINE_HEIGHT,
     }}>
 
       {/* ── HEADER — left-border identity mark ── */}

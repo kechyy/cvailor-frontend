@@ -1,5 +1,5 @@
 import type { CVTemplate } from '@/types'
-import { mockCVData } from './cvBuilderMock'
+import { mockCVData, mockCV_TechSenior, mockCV_OpsManager, mockCV_Academic } from './cvBuilderMock'
 
 export const mockTemplates: CVTemplate[] = [
   {
@@ -14,7 +14,7 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'single',
     industryReason:
       'Harvard Business, Oxford and LSE career offices explicitly recommend traditional serif formats for finance and law. Zero visual decoration signals focus on substance.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_OpsManager,
   },
   {
     id: 'modern',
@@ -29,7 +29,7 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'single',
     industryReason:
       'FAANG recruiters and ATS systems score single-column highest. Blue accent matches the visual language of tech companies. Skills-first sidebar variant available.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_TechSenior,
   },
   {
     id: 'professional',
@@ -43,7 +43,7 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'sidebar-left',
     industryReason:
       'Dark left sidebar anchors skills and contact information. Main column gives experience the dominant 65% of the page — the standard UK professional CV structure.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_OpsManager,
   },
   {
     id: 'executive',
@@ -57,7 +57,7 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'single',
     industryReason:
       'McKinsey and executive search firms expect commanding navy-on-white presence. Gold accents signal premium seniority. Two-panel body separates career history from credentials.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_TechSenior,
   },
   {
     id: 'academic',
@@ -71,7 +71,7 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'single',
     industryReason:
       'Academic CVs universally place education before experience. Dense information layout signals thoroughness. No colour decoration — substance over style.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_Academic,
   },
   {
     id: 'healthcare',
@@ -85,7 +85,7 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'single',
     industryReason:
       'NHS Trusts and private healthcare ATS systems favour single-column formats with certifications prominently displayed. Teal conveys clinical professionalism.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_OpsManager,
   },
   {
     id: 'creative',
@@ -99,6 +99,6 @@ export const mockTemplates: CVTemplate[] = [
     layout: 'single',
     industryReason:
       'Creative directors expect visual demonstration of taste. Split header shows design awareness while keeping content in a single readable column. Use only for studio and agency roles.',
-    sampleCV: mockCVData,
+    sampleCV: mockCV_TechSenior,
   },
 ]

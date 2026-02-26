@@ -1,5 +1,6 @@
 'use client'
 import type { CVData } from '@/types'
+import { BASE_FONT_SIZE_PX, BASE_LINE_HEIGHT, FONT_SANS_ATS } from './standards'
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
 export default function TemplateProfessional({ cv }: Props) {
@@ -19,9 +20,9 @@ export default function TemplateProfessional({ cv }: Props) {
 
   return (
     <div style={{
-      fontFamily: 'Inter, -apple-system, sans-serif',
+      fontFamily: FONT_SANS_ATS,
       display: 'flex', width: 794, minHeight: 1123,
-      boxSizing: 'border-box' as const, fontSize: 10.5,
+      boxSizing: 'border-box' as const, fontSize: BASE_FONT_SIZE_PX, lineHeight: BASE_LINE_HEIGHT,
     }}>
 
       {/* ── SIDEBAR — dark slate ── */}
@@ -34,11 +35,20 @@ export default function TemplateProfessional({ cv }: Props) {
 
         {/* Name & Title */}
         <div style={{ marginBottom: 20, paddingBottom: 18, borderBottom: '2px solid #F59E0B' }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.25, marginBottom: 5 }}>
-            {personal.fullName || 'Your Name'}
-          </div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: 500, lineHeight: 1.4 }}>
-            {personal.jobTitle || ''}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {personal.photoUrl && (
+              <div style={{ width: 54, height: 54, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.25)', flexShrink: 0 }}>
+                <img src={personal.photoUrl} alt="Profile photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#FFFFFF', lineHeight: 1.25, marginBottom: 5 }}>
+                {personal.fullName || 'Your Name'}
+              </div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 500, lineHeight: 1.35 }}>
+                {personal.jobTitle || ''}
+              </div>
+            </div>
           </div>
         </div>
 

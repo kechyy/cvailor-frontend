@@ -1,5 +1,6 @@
 'use client'
 import type { CVData } from '@/types'
+import { BASE_FONT_SIZE_PX, BASE_LINE_HEIGHT, FONT_SANS_ATS } from './standards'
 
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
@@ -14,12 +15,21 @@ export default function TemplateCreative({ cv }: Props) {
   )
 
   return (
-    <div style={{ width: 794, minHeight: 1123, boxSizing: 'border-box', background: '#FFFBF5', fontFamily: 'Inter, -apple-system, Helvetica Neue, sans-serif', color: '#0F172A', lineHeight: 1.5 }}>
+    <div style={{ width: 794, minHeight: 1123, boxSizing: 'border-box', background: '#FFFBF5', fontFamily: FONT_SANS_ATS, color: '#0F172A', lineHeight: BASE_LINE_HEIGHT, fontSize: BASE_FONT_SIZE_PX }}>
       {/* Split header */}
       <div style={{ display: 'flex', width: '100%' }}>
         <div style={{ flex: 1, background: '#FFFBF5', padding: '44px 32px 36px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h1 style={{ fontSize: 30, fontWeight: 900, color: '#0F172A', margin: '0 0 8px', letterSpacing: -0.5, lineHeight: 1.05 }}>{personal.fullName || 'Your Name'}</h1>
-          <p style={{ fontSize: 13, color: '#FB923C', margin: 0, fontWeight: 700 }}>{personal.jobTitle || ''}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {personal.photoUrl && (
+              <div style={{ width: 62, height: 62, borderRadius: '50%', overflow: 'hidden', border: '2px solid #FB923C', flexShrink: 0 }}>
+                <img src={personal.photoUrl} alt="Profile photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+            <div>
+              <h1 style={{ fontSize: 30, fontWeight: 900, color: '#0F172A', margin: '0 0 8px', letterSpacing: -0.5, lineHeight: 1.05 }}>{personal.fullName || 'Your Name'}</h1>
+              <p style={{ fontSize: 13, color: '#FB923C', margin: 0, fontWeight: 700 }}>{personal.jobTitle || ''}</p>
+            </div>
+          </div>
         </div>
         <div style={{ width: 230, background: '#FB7185', flexShrink: 0, padding: '44px 24px 36px' }}>
           <div style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5, color: 'rgba(255,255,255,0.65)', marginBottom: 14 }}>Contact</div>

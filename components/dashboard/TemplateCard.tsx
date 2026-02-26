@@ -24,6 +24,12 @@ export default function TemplateCard({ template, isSelected = false, showReason 
     router.push('/dashboard/cv/new')
   }
 
+  const handlePreview = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setTemplate(template.id)
+    router.push('/dashboard/cv/preview')
+  }
+
   // Keep thumbnail width in sync with the card's actual width so the preview fills the container.
   useEffect(() => {
     if (!cardRef.current) return
@@ -79,6 +85,9 @@ export default function TemplateCard({ template, isSelected = false, showReason 
       <button type="button" className="tc-btn" onClick={(e) => { e.stopPropagation(); handleUse() }}>
         Use This Template
       </button>
+      <button type="button" className="tc-preview-btn" onClick={handlePreview}>
+        Preview
+      </button>
 
       {showReason && (
         <p className="reason">{template.industryReason}</p>
@@ -103,6 +112,26 @@ export default function TemplateCard({ template, isSelected = false, showReason 
           opacity: 1;
           transform: translateY(0);
           pointer-events: all;
+        }
+        .tc-preview-btn {
+          position: absolute;
+          left: 50%;
+          bottom: 22px;
+          transform: translate(-50%, 2px);
+          padding: 8px 14px;
+          background: #FFFFFF;
+          color: #4B5563;
+          font-size: 11px;
+          font-weight: 600;
+          border: 1px solid #E5E7EB;
+          border-radius: 10px;
+          box-shadow: 0 6px 16px rgba(15,23,42,0.08);
+          transition: all 0.18s ease;
+          z-index: 4;
+        }
+        .tc-card:hover .tc-preview-btn {
+          transform: translate(-50%, -2px);
+          box-shadow: 0 8px 20px rgba(15,23,42,0.12);
         }
         .tc-selected {
           border: 2.5px solid #2ECC8F;

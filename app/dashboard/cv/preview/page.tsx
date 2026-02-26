@@ -6,13 +6,7 @@ import TopBar from '@/components/dashboard/TopBar'
 import AtsScoreMeter from '@/components/dashboard/AtsScoreMeter'
 import KeywordChips from '@/components/dashboard/KeywordChips'
 import CoverLetterPanel from '@/components/dashboard/CoverLetterPanel'
-import TemplateClassic from '@/components/dashboard/cv-templates/TemplateClassic'
-import TemplateModern from '@/components/dashboard/cv-templates/TemplateModern'
-import TemplateProfessional from '@/components/dashboard/cv-templates/TemplateProfessional'
-import TemplateExecutive from '@/components/dashboard/cv-templates/TemplateExecutive'
-import TemplateAcademic from '@/components/dashboard/cv-templates/TemplateAcademic'
-import TemplateHealthcare from '@/components/dashboard/cv-templates/TemplateHealthcare'
-import TemplateCreative from '@/components/dashboard/cv-templates/TemplateCreative'
+import { renderTemplate, templateRegistry } from '@/components/dashboard/cv-templates/registry'
 import {
   mockTailoredCV,
   mockAtsScore,
@@ -22,32 +16,9 @@ import {
   mockAtsTips,
   mockCoverLetter,
 } from '@/mock/previewMock'
+import { mockCV_TechSenior } from '@/mock/cvBuilderMock'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import type { TemplateId } from '@/types'
-
-const TEMPLATES: { id: TemplateId; label: string }[] = [
-  { id: 'classic', label: 'Classic' },
-  { id: 'modern', label: 'Modern' },
-  { id: 'professional', label: 'Professional' },
-  { id: 'executive', label: 'Executive' },
-  { id: 'academic', label: 'Academic' },
-  { id: 'healthcare', label: 'Healthcare' },
-  { id: 'creative', label: 'Creative' },
-]
-
-function renderTemplate(id: TemplateId, matchedKeywords: string[]) {
-  const props = { cv: mockTailoredCV, matchedKeywords }
-  switch (id) {
-    case 'classic': return <TemplateClassic {...props} />
-    case 'modern': return <TemplateModern {...props} />
-    case 'professional': return <TemplateProfessional {...props} />
-    case 'executive': return <TemplateExecutive {...props} />
-    case 'academic': return <TemplateAcademic {...props} />
-    case 'healthcare': return <TemplateHealthcare {...props} />
-    case 'creative': return <TemplateCreative {...props} />
-    default: return <TemplateModern {...props} />
-  }
-}
 
 const scoreItems = [
   { label: 'Keywords match', value: mockScoreBreakdown.keywordsMatch, color: '#5B4FCF' },
@@ -57,9 +28,30 @@ const scoreItems = [
 ]
 
 export default function PreviewPage() {
-  const { selectedTemplate, setTemplate } = useCVBuilderStore()
+  const {
+    selectedTemplate,
+    setTemplate,
+    personal,
+    experience,
+    education,
+    skills,
+    languages,
+    certifications,
+  } = useCVBuilderStore()
   const [activeTab, setActiveTab] = useState<'insights' | 'cover'>('insights')
   const [dismissedTips, setDismissedTips] = useState<number[]>([])
+
+  const hasUserCv =
+    Boolean(personal.fullName) ||
+    experience.length > 0 ||
+    education.length > 0 ||
+    skills.length > 0 ||
+    languages.length > 0 ||
+    certifications.length > 0
+
+  const cvData = hasUserCv
+    ? { personal, experience, education, skills, languages, certifications }
+    : mockCV_TechSenior
 
   return (
     <>
@@ -74,7 +66,7 @@ export default function PreviewPage() {
         <div className="space-y-4">
           {/* Template switcher */}
           <div className="flex gap-2 flex-wrap">
-            {TEMPLATES.map((t) => (
+            {templateRegistry.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -99,7 +91,7 @@ export default function PreviewPage() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {renderTemplate(selectedTemplate, mockMatchedKeywords)}
+                {renderTemplate(selectedTemplate, { cv: cvData, matchedKeywords: mockMatchedKeywords })}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -206,7 +198,7 @@ export default function PreviewPage() {
                 >
                   <CoverLetterPanel
                     coverLetter={mockCoverLetter}
-                    candidateName={mockTailoredCV.personal.fullName}
+                    candidateName={cvData.personal.fullName || mockTailoredCV.personal.fullName}
                   />
                 </motion.div>
               )}

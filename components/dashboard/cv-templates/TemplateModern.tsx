@@ -1,5 +1,6 @@
 'use client'
 import type { CVData } from '@/types'
+import { BASE_FONT_SIZE_PX, FONT_SANS_ATS, BASE_LINE_HEIGHT } from './standards'
 
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
@@ -20,17 +21,31 @@ export default function TemplateModern({ cv }: Props) {
       boxSizing: 'border-box',
       padding: '46px 54px 50px',
       background: '#FFFFFF',
-      fontFamily: 'Inter, -apple-system, Helvetica Neue, sans-serif',
+      fontFamily: FONT_SANS_ATS,
       color: '#111827',
-      lineHeight: 1.55,
+      lineHeight: BASE_LINE_HEIGHT,
+      fontSize: BASE_FONT_SIZE_PX,
     }}>
       <header style={{ marginBottom: 22 }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: '#0F172A' }}>{personal.fullName || 'Your Name'}</div>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: '#2563EB', marginTop: 4 }}>{personal.jobTitle || ''}</div>
-        <div style={{ width: 40, height: 2, background: '#2563EB', marginTop: 10, marginBottom: 12 }} />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 10, color: '#6B7280' }}>
-          {[personal.email, personal.phone, personal.location, personal.linkedin, personal.website].filter(Boolean).map((item, i) => (
-            <span key={item}>{item}{i < (personal.email ? 5 : 4) - 1 ? '' : ''}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {personal.photoUrl && (
+              <div style={{ width: 58, height: 58, borderRadius: '50%', overflow: 'hidden', border: '2px solid #E5E7EB', flexShrink: 0 }}>
+                <img src={personal.photoUrl} alt="Profile photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#0F172A' }}>{personal.fullName || 'Your Name'}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: '#2563EB', marginTop: 4 }}>{personal.jobTitle || ''}</div>
+            </div>
+          </div>
+          <div style={{ width: 44, height: 3, background: '#2563EB', borderRadius: 999 }} />
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 10, color: '#6B7280', marginTop: 12 }}>
+          {[personal.email, personal.phone, personal.location, personal.linkedin, personal.website].filter(Boolean).map((item, i, arr) => (
+            <span key={item}>
+              {item}{i < arr.length - 1 && <span style={{ margin: '0 6px', color: '#E5E7EB' }}>|</span>}
+            </span>
           ))}
         </div>
       </header>

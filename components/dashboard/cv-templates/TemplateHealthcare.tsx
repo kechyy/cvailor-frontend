@@ -1,5 +1,6 @@
 'use client'
 import type { CVData } from '@/types'
+import { BASE_FONT_SIZE_PX, BASE_LINE_HEIGHT, FONT_SANS_ATS } from './standards'
 
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
@@ -14,7 +15,7 @@ export default function TemplateHealthcare({ cv }: Props) {
   const { personal, experience = [], education = [], skills = [], languages = [], certifications = [] } = cv
 
   return (
-    <div style={{ width: 794, minHeight: 1123, boxSizing: 'border-box', background: '#FFFFFF', fontFamily: 'Inter, -apple-system, Helvetica Neue, sans-serif', color: '#0F172A', lineHeight: 1.55 }}>
+    <div style={{ width: 794, minHeight: 1123, boxSizing: 'border-box', background: '#FFFFFF', fontFamily: FONT_SANS_ATS, color: '#0F172A', lineHeight: BASE_LINE_HEIGHT, fontSize: BASE_FONT_SIZE_PX }}>
       {/* Header */}
       <div style={{ background: '#0D9488', color: '#FFFFFF', padding: '36px 48px 28px' }}>
         <div style={{ fontSize: 24, fontWeight: 800 }}>{personal.fullName || 'Your Name'}</div>

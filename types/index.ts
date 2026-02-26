@@ -22,6 +22,7 @@ export interface PersonalInfo {
   linkedin?: string
   website?: string
   summary?: string
+  photoUrl?: string
 }
 
 export interface ExperienceEntry {

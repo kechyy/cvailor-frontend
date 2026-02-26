@@ -1,5 +1,6 @@
 'use client'
 import type { CVData } from '@/types'
+import { BASE_FONT_SIZE_PX, BASE_LINE_HEIGHT, FONT_SERIF_ATS } from './standards'
 
 interface Props { cv: CVData; matchedKeywords?: string[] }
 
@@ -15,15 +16,15 @@ export default function TemplateClassic({ cv }: Props) {
 
   return (
     <div style={{
-      fontFamily: 'Georgia, "Times New Roman", serif',
+      fontFamily: FONT_SERIF_ATS,
       color: '#111827',
       background: '#FFFFFF',
       width: 794,
       minHeight: 1123,
       padding: '52px 60px',
       boxSizing: 'border-box',
-      fontSize: 10.5,
-      lineHeight: 1.55,
+      fontSize: BASE_FONT_SIZE_PX,
+      lineHeight: BASE_LINE_HEIGHT,
     }}>
       <div style={{ textAlign: 'center', marginBottom: 22, paddingBottom: 16, borderBottom: '2px solid #111827' }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, margin: '0 0 5px', letterSpacing: 1.5, textTransform: 'uppercase' }}>{personal.fullName || 'Your Name'}</h1>
