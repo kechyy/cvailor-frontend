@@ -300,7 +300,9 @@ export default function EditorPage() {
             </div>
             <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">A4 preview</span>
           </div>
-          <A4PreviewFrame templateId={selectedTemplateId || 'modern'} cv={previewCv} />
+          <div className="w-full max-w-[520px] mx-auto">
+            <A4PreviewFrame templateId={selectedTemplateId || 'modern'} cv={previewCv} />
+          </div>
         </div>
       </div>
     </>

@@ -5,7 +5,9 @@ import { renderTemplate } from './cv-templates/registry'
 
 const A4_WIDTH = 794
 const A4_HEIGHT = 1123
-const SAFE_PAD = 32 // px breathing room top/bottom used for slicing windows
+const SAFE_PAD_TOP = 48
+const SAFE_PAD_BOTTOM = 48
+const CONTENT_WINDOW = A4_HEIGHT - SAFE_PAD_TOP - SAFE_PAD_BOTTOM
 
 interface Props {
   templateId: TemplateId
@@ -15,53 +17,52 @@ interface Props {
   shadow?: boolean
 }
 
-// Single source of truth for scaling CV previews. Keeps aspect ratio and transforms
-// only the wrapper (never the template), so typography stays ATS-safe.
+// Scales once, slices content into equal-height windows, and stacks A4 cards.
 export default function A4PreviewFrame({ templateId, cv, matchedKeywords, className, shadow = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const measureRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(0.26)
   const [pageCount, setPageCount] = useState(1)
+
   const scaledHeight = A4_HEIGHT * scale
   const scaledWidth = A4_WIDTH * scale
 
+  // Fit width to container
   useLayoutEffect(() => {
     const el = containerRef.current
     if (!el) return
-
     const compute = () => {
       const width = el.clientWidth || A4_WIDTH
-      const next = width / A4_WIDTH
-      setScale((prev) => (Math.abs(prev - next) > 0.0001 ? next : prev))
+      const next = Math.min(parseFloat((width / A4_WIDTH).toFixed(4)), 1)
+      setScale((prev) => (Math.abs(prev - next) > 0.0005 ? next : prev))
     }
-
     compute()
     const obs = new ResizeObserver(compute)
     obs.observe(el)
     return () => obs.disconnect()
   }, [templateId])
 
+  // Measure full content height (unscaled)
   useLayoutEffect(() => {
     const inner = measureRef.current
     if (!inner) return
     const h = inner.scrollHeight
-    const pageWindow = A4_HEIGHT - SAFE_PAD * 2
-    const pages = Math.max(1, Math.ceil((h + SAFE_PAD * 2) / pageWindow))
+    const pages = Math.max(1, Math.ceil(h / CONTENT_WINDOW))
     setPageCount(pages)
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('[A4PreviewFrame] measure', {
+        measuredContentHeight: h,
+        pageCount: pages,
+        contentWindow: CONTENT_WINDOW,
+      })
+    }
   }, [templateId, cv])
 
   const pages = useMemo(() => Array.from({ length: pageCount }, (_, i) => i), [pageCount])
 
-  const goToPage = (page: number) => {
-    const el = containerRef.current
-    if (!el) return
-    const top = (page - 1) * scaledHeight
-    el.scrollTo({ top, behavior: 'smooth' })
-  }
-
   return (
     <>
-      {/* hidden measure node to determine total height at 1x */}
+      {/* Hidden measure node at 1x to compute height */}
       <div style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', height: 0, overflow: 'hidden' }}>
         <div ref={measureRef} style={{ width: A4_WIDTH }}>
           {renderTemplate(templateId, { cv, matchedKeywords })}
@@ -81,45 +82,71 @@ export default function A4PreviewFrame({ templateId, cv, matchedKeywords, classN
           boxShadow: shadow ? '0 12px 32px rgba(15,23,42,0.18)' : 'none',
         }}
       >
-        {pages.map((page) => (
-          <div
-            key={page}
-            style={{
-              width: scaledWidth,
-              height: scaledHeight,
-              margin: '0 auto 14px',
-              background: '#fff',
-              boxShadow: shadow ? '0 10px 26px rgba(17,24,39,0.18)' : 'none',
-              borderRadius: 8,
-              overflow: 'hidden',
-              position: 'relative',
-              padding: `${SAFE_PAD * scale}px`,
-              boxSizing: 'border-box',
-            }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                top: -(Math.max(0, page * (A4_HEIGHT - SAFE_PAD * 2) - SAFE_PAD)) * scale,
-                left: 0,
+        {pages.map((page) => {
+          const offset = page * CONTENT_WINDOW
+          return (
+            <div
+              key={page}
+              style={{
                 width: scaledWidth,
-                transformOrigin: 'top left',
+                height: scaledHeight,
+                margin: '0 auto 14px',
+                background: '#fff',
+                boxShadow: shadow ? '0 10px 26px rgba(17,24,39,0.18)' : 'none',
+                borderRadius: 8,
+                overflow: 'hidden',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
+              <div style={{ height: SAFE_PAD_TOP * scale, flexShrink: 0 }} />
+
               <div
                 style={{
-                  transform: `scale(${scale})`,
-                  transformOrigin: 'top left',
-                  width: A4_WIDTH,
-                  pointerEvents: 'none',
-                  userSelect: 'none',
+                  height: CONTENT_WINDOW * scale,
+                  overflow: 'hidden',
+                  position: 'relative',
                 }}
               >
-                {renderTemplate(templateId, { cv, matchedKeywords })}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -offset * scale,
+                    left: 0,
+                    width: scaledWidth,
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top left',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                  }}
+                >
+                  {renderTemplate(templateId, { cv, matchedKeywords })}
+                </div>
               </div>
+
+              <div style={{ height: SAFE_PAD_BOTTOM * scale, flexShrink: 0 }} />
+
+              {process.env.NODE_ENV !== 'production' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    padding: '4px 6px',
+                    background: 'rgba(0,0,0,0.6)',
+                    color: '#fff',
+                    fontSize: 10,
+                    borderRadius: 6,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  p{page + 1} • offset {offset}px • win {CONTENT_WINDOW}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </>
   )
