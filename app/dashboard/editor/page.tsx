@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import TopBar from '@/components/dashboard/TopBar'
@@ -12,24 +12,7 @@ import A4PreviewFrame from '@/components/dashboard/A4PreviewFrame'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import { personalInfoSchema } from '@/lib/validations'
 import type { CVData } from '@/types'
-
-const linkedinMock = {
-  personal: {
-    fullName: 'Jordan Avery',
-    jobTitle: 'Senior Product Manager',
-    email: 'jordan.avery@email.com',
-    phone: '+1 415 222 9898',
-    location: 'San Francisco, CA',
-    linkedin: 'linkedin.com/in/jordanavery',
-    website: 'jordanavery.com',
-    summary: 'Senior PM with 8 years in B2B SaaS, specializing in growth, onboarding, and monetization. Led multi-team launches that increased ARR by $9.4M and improved activation by 18 points.',
-  },
-  experience: [],
-  education: [],
-  skills: ['Product Strategy', 'Experimentation', 'A/B Testing', 'SQL', 'Roadmapping'],
-  languages: ['English', 'Spanish'],
-  certifications: ['CSPO'],
-}
+import { mockCV_TechSenior } from '@/mock/cvBuilderMock'
 
 type FormValues = {
   fullName: string
@@ -85,12 +68,17 @@ export default function EditorPage() {
   const [skills, setSkills] = useState<string[]>(cvData.skills)
   const [languages, setLanguages] = useState<string[]>(cvData.languages)
   const [certifications, setCertifications] = useState<string[]>(cvData.certifications)
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [previousCv, setPreviousCv] = useState<CVData | null>(null)
+  const isDev = process.env.NODE_ENV !== 'production'
+  const [forceLong, setForceLong] = useState(false)
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(personalInfoSchema.pick({
@@ -111,7 +99,7 @@ export default function EditorPage() {
   register('languages')
   register('certifications')
 
-  const watched = watch()
+  const watched = useWatch({ control })
 
   const onSubmit = (data: FormValues) => {
     const updated: CVData = {
@@ -125,24 +113,78 @@ export default function EditorPage() {
     router.push('/dashboard/job-description')
   }
 
+  const loadLongCv = () => {
+    const longCv: CVData = {
+      ...mockCV_TechSenior,
+      experience: [...mockCV_TechSenior.experience, ...mockCV_TechSenior.experience].map((e, idx) => ({
+        ...e,
+        id: `${e.id}_long_${idx}`,
+      })),
+    }
+    setCvData(longCv)
+    setSkills(longCv.skills)
+    setLanguages(longCv.languages)
+    setCertifications(longCv.certifications)
+    setForceLong(true)
+    console.debug('[DEV] applied long CV for pagination test')
+  }
+
   const importLinkedIn = () => {
-    setSkills(linkedinMock.skills)
-    setLanguages(linkedinMock.languages)
-    setCertifications(linkedinMock.certifications)
-    setCvData({ ...cvData, ...linkedinMock, personal: { ...linkedinMock.personal } })
-    setImported(true)
+    const url = (watched?.linkedin || '').trim()
+    if (!url) {
+      setImportError('Add your LinkedIn URL above before importing.')
+      return
+    }
+    setImportError(null)
+    setPreviousCv(cvData)
+    setImporting(true)
+    // Placeholder: await backend integration. We only show success feedback.
+    setTimeout(() => {
+      setImported(true)
+      setImporting(false)
+    }, 900)
+  }
+
+  const revertImport = () => {
+    if (!previousCv) return
+    setCvData(previousCv)
+    setSkills(previousCv.skills)
+    setLanguages(previousCv.languages)
+    setCertifications(previousCv.certifications)
+    setImported(false)
+    setPreviousCv(null)
   }
 
   const skip = () => router.push('/dashboard/job-description')
 
-  // Derive preview data from current form defaults + tag state (no store churn)
+  // Derive preview data from current form values + tag state (no store churn)
   const previewCv: CVData = {
     ...cvData,
     personal: { ...cvData.personal, ...watched },
-    skills,
-    languages,
-    certifications,
+    skills: watched?.skills ?? skills,
+    languages: watched?.languages ?? languages,
+    certifications: watched?.certifications ?? certifications,
   }
+
+  // Keep store CV data aligned with what the user sees in the live preview.
+  useEffect(() => {
+    if (!watched) return
+    const base = getCVData()
+    const next: CVData = {
+      ...base,
+      personal: { ...base.personal, ...watched },
+      skills: watched.skills ?? skills,
+      languages: watched.languages ?? languages,
+      certifications: watched.certifications ?? certifications,
+    }
+    const changed =
+      JSON.stringify(next.personal) !== JSON.stringify(base.personal) ||
+      JSON.stringify(next.skills) !== JSON.stringify(base.skills) ||
+      JSON.stringify(next.languages) !== JSON.stringify(base.languages) ||
+      JSON.stringify(next.certifications) !== JSON.stringify(base.certifications)
+
+    if (changed) setCvData(next)
+  }, [watched, skills, languages, certifications, getCVData, setCvData])
 
   return (
     <>
@@ -150,8 +192,13 @@ export default function EditorPage() {
         title="Edit your CV"
         subtitle="Make quick tweaks before tailoring to a job"
         action={
-          <div className="flex gap-2 text-xs text-gray-400">
+          <div className="flex gap-2 text-xs text-gray-400 items-center">
             <button onClick={() => { setSelectedFlow('build'); setSelectedTemplateId(selectedTemplateId || 'modern'); }} className="underline">Switch template</button>
+            {isDev && (
+              <button onClick={loadLongCv} className="underline text-brand-purple">
+                Dev: long CV
+              </button>
+            )}
           </div>
         }
       />
@@ -163,13 +210,38 @@ export default function EditorPage() {
               <h3 className="font-display text-xl text-gray-900">CV details</h3>
               <p className="text-sm text-gray-400">These fields feed directly into the template</p>
             </div>
-            <button type="button" onClick={importLinkedIn}
-              className="text-xs font-semibold text-brand-purple bg-brand-purple/10 px-3 py-1.5 rounded-lg hover:bg-brand-purple/15">
-              Import LinkedIn (mock)
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={importLinkedIn}
+                disabled={importing}
+                className="flex items-center gap-2 text-xs font-semibold text-white bg-[#0A66C2] px-3 py-1.5 rounded-lg hover:bg-[#084f96] disabled:opacity-60"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M4.98 3.5C4.98 4.88 3.88 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.2 8.2h4.6V24H.2zM8.34 8.2h4.41v2.15h.06c.61-1.16 2.1-2.38 4.32-2.38 4.62 0 5.47 3.04 5.47 6.99V24h-4.8v-7.7c0-1.84-.03-4.2-2.56-4.2-2.56 0-2.95 2-2.95 4.07V24h-4.8z"/>
+                </svg>
+                {importing ? 'Importing…' : 'Import from LinkedIn'}
+              </button>
+              {imported && (
+                <button
+                  type="button"
+                  onClick={revertImport}
+                  className="text-xs font-semibold text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50"
+                >
+                  Revert
+                </button>
+              )}
+            </div>
           </div>
 
-          {imported && <p className="text-xs text-brand-green font-semibold">LinkedIn data imported.</p>}
+          {imported && (
+            <p className="text-xs text-brand-green font-semibold flex items-center gap-1.5">
+              <span>✓</span> LinkedIn import queued — your current data stayed unchanged. We’ll sync once connected.
+            </p>
+          )}
+          {importError && (
+            <p className="text-xs text-red-500 font-semibold">{importError}</p>
+          )}
 
           <div className="grid sm:grid-cols-2 gap-4">
             <FormField label="Full name" placeholder="Your name" error={errors.fullName?.message} {...register('fullName')} />
