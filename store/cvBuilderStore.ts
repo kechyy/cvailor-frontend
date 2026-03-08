@@ -14,6 +14,7 @@ interface CVBuilderState {
   selectedFlow: 'build' | 'upload' | null
   selectedTemplateId: TemplateId | null
   currentStep: number
+  editorStep: number
   isUploaded: boolean
 
   // CV Data
@@ -35,6 +36,9 @@ interface CVBuilderState {
   setStep: (step: number) => void
   nextStep: () => void
   prevStep: () => void
+  setEditorStep: (step: number) => void
+  nextEditorStep: () => void
+  prevEditorStep: () => void
   setIsUploaded: (val: boolean) => void
   resetFlow: () => void
 
@@ -85,6 +89,7 @@ export const useCVBuilderStore = create<CVBuilderState>()(
       selectedFlow: null,
       selectedTemplateId: null,
       currentStep: 1,
+      editorStep: 1,
       isUploaded: false,
 
       // CV data
@@ -99,11 +104,15 @@ export const useCVBuilderStore = create<CVBuilderState>()(
       setStep: (step) => set({ currentStep: step }),
       nextStep: () => set((s) => ({ currentStep: Math.min(s.currentStep + 1, 5) })),
       prevStep: () => set((s) => ({ currentStep: Math.max(s.currentStep - 1, 1) })),
+      setEditorStep: (step) => set({ editorStep: Math.min(Math.max(step, 1), 4) }),
+      nextEditorStep: () => set((s) => ({ editorStep: Math.min(s.editorStep + 1, 4) })),
+      prevEditorStep: () => set((s) => ({ editorStep: Math.max(s.editorStep - 1, 1) })),
       setIsUploaded: (val) => set({ isUploaded: val }),
       resetFlow: () => set({
         selectedFlow: null,
         selectedTemplateId: null,
         currentStep: 1,
+        editorStep: 1,
         isUploaded: false,
         jobDescription: '',
         uploadedCvText: null,
@@ -156,6 +165,7 @@ export const useCVBuilderStore = create<CVBuilderState>()(
 
       resetForm: () => set({
         currentStep: 1,
+        editorStep: 1,
         isUploaded: false,
         jobDescription: '',
         selectedTemplate: 'modern',
@@ -189,6 +199,7 @@ export const useCVBuilderStore = create<CVBuilderState>()(
         uploadedCvText: state.uploadedCvText,
         tailoredCvData: state.tailoredCvData,
         selectedTemplate: state.selectedTemplate,
+        editorStep: state.editorStep,
       }),
     }
   )

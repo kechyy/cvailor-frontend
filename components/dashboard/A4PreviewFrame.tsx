@@ -5,8 +5,8 @@ import { renderTemplate } from './cv-templates/registry'
 
 const A4_WIDTH = 794
 const A4_HEIGHT = 1123
-const SAFE_PAD_TOP = 48
-const SAFE_PAD_BOTTOM = 48
+const SAFE_PAD_TOP = 0
+const SAFE_PAD_BOTTOM = 0
 const CONTENT_WINDOW = A4_HEIGHT - SAFE_PAD_TOP - SAFE_PAD_BOTTOM
 
 interface Props {
@@ -17,7 +17,6 @@ interface Props {
   shadow?: boolean
 }
 
-// Scales once, slices content into equal-height windows, and stacks A4 cards.
 export default function A4PreviewFrame({ templateId, cv, matchedKeywords, className, shadow = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const measureRef = useRef<HTMLDivElement>(null)
@@ -27,7 +26,6 @@ export default function A4PreviewFrame({ templateId, cv, matchedKeywords, classN
   const scaledHeight = A4_HEIGHT * scale
   const scaledWidth = A4_WIDTH * scale
 
-  // Fit width to container
   useLayoutEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -42,27 +40,18 @@ export default function A4PreviewFrame({ templateId, cv, matchedKeywords, classN
     return () => obs.disconnect()
   }, [templateId])
 
-  // Measure full content height (unscaled)
   useLayoutEffect(() => {
     const inner = measureRef.current
     if (!inner) return
     const h = inner.scrollHeight
     const pages = Math.max(1, Math.ceil(h / CONTENT_WINDOW))
     setPageCount(pages)
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug('[A4PreviewFrame] measure', {
-        measuredContentHeight: h,
-        pageCount: pages,
-        contentWindow: CONTENT_WINDOW,
-      })
-    }
   }, [templateId, cv])
 
   const pages = useMemo(() => Array.from({ length: pageCount }, (_, i) => i), [pageCount])
 
   return (
     <>
-      {/* Hidden measure node at 1x to compute height */}
       <div style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', height: 0, overflow: 'hidden' }}>
         <div ref={measureRef} style={{ width: A4_WIDTH }}>
           {renderTemplate(templateId, { cv, matchedKeywords })}
@@ -126,24 +115,6 @@ export default function A4PreviewFrame({ templateId, cv, matchedKeywords, classN
               </div>
 
               <div style={{ height: SAFE_PAD_BOTTOM * scale, flexShrink: 0 }} />
-
-              {process.env.NODE_ENV !== 'production' && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 6,
-                    right: 6,
-                    padding: '4px 6px',
-                    background: 'rgba(0,0,0,0.6)',
-                    color: '#fff',
-                    fontSize: 10,
-                    borderRadius: 6,
-                    pointerEvents: 'none',
-                  }}
-                >
-                  p{page + 1} • offset {offset}px • win {CONTENT_WINDOW}
-                </div>
-              )}
             </div>
           )
         })}
