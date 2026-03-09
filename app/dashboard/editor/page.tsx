@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
 import TopBar from '@/components/dashboard/TopBar'
 import { FormField } from '@/components/ui/FormField'
 import { TextareaField } from '@/components/ui/TextareaField'
@@ -13,6 +14,9 @@ import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import { personalInfoSchema } from '@/lib/validations'
 import type { CVData, EducationEntry, ExperienceEntry } from '@/types'
 import { mockCV_TechSenior } from '@/mock/cvBuilderMock'
+import { mockTemplates } from '@/mock/templatesMock'
+
+const STEP_LABELS = ['Profile', 'Experience', 'Education & Skills', 'Job description']
 
 type FormValues = {
   fullName: string
@@ -69,6 +73,36 @@ export default function EditorPage() {
     }
   }, [setEditorStep])
 
+  // Seed experience & education from the selected template's sample CV.
+  // Re-runs when template changes. Preserves entries only if they have real user content
+  // (non-mock ID AND non-empty text). Blank entries or mock-seeded entries always get replaced.
+  useEffect(() => {
+    if (!selectedFlow || selectedFlow !== 'build' || !selectedTemplateId) return
+
+    const { getCVData: getData, setCvData: setData } = useCVBuilderStore.getState()
+    const isMockId = (id: string) => /^[a-z]+_\d{1,6}$/.test(id)
+    const current = getData()
+
+    // "Real user content" requires a non-mock ID AND actual text in key fields
+    const hasUserExp = current.experience.some((e) => !isMockId(e.id) && e.company.trim())
+    const hasUserEdu = current.education.some((e) => !isMockId(e.id) && e.institution.trim())
+
+    if (hasUserExp && hasUserEdu) return
+
+    const sample = mockTemplates.find((t) => t.id === selectedTemplateId)?.sampleCV ?? mockCV_TechSenior
+    const now = Date.now()
+
+    setData({
+      ...current,
+      experience: hasUserExp
+        ? current.experience
+        : sample.experience.map((e, i) => ({ ...e, id: `exp_${now + i}` })),
+      education: hasUserEdu
+        ? current.education
+        : sample.education.map((e, i) => ({ ...e, id: `edu_${now + i}` })),
+    })
+  }, [selectedFlow, selectedTemplateId])
+
   const defaultValues = useMemo(() => ({
     fullName: cvData.personal.fullName,
     jobTitle: cvData.personal.jobTitle,
@@ -90,7 +124,6 @@ export default function EditorPage() {
   const [importError, setImportError] = useState<string | null>(null)
   const [previousCv, setPreviousCv] = useState<CVData | null>(null)
   const isDev = process.env.NODE_ENV !== 'production'
-  const [forceLong, setForceLong] = useState(false)
 
   const {
     register,
@@ -143,7 +176,6 @@ export default function EditorPage() {
     setSkills(longCv.skills)
     setLanguages(longCv.languages)
     setCertifications(longCv.certifications)
-    setForceLong(true)
     console.debug('[DEV] applied long CV for pagination test')
   }
 
@@ -173,13 +205,32 @@ export default function EditorPage() {
     setPreviousCv(null)
   }
 
-  // Derive preview data from current form values + tag state (no store churn)
+  // Live preview: use template's sampleCV as base, overlay user's non-empty input.
+  // Empty fields fall back to sample data so the template always looks populated.
+  const sampleCv = mockTemplates.find((t) => t.id === (selectedTemplateId || 'modern'))?.sampleCV ?? mockCV_TechSenior
+  const w = watched ?? {}
   const previewCv: CVData = {
-    ...cvData,
-    personal: { ...cvData.personal, ...watched },
-    skills: watched?.skills ?? skills,
-    languages: watched?.languages ?? languages,
-    certifications: watched?.certifications ?? certifications,
+    ...sampleCv,
+    personal: {
+      ...sampleCv.personal,
+      ...(w.fullName?.trim()   && { fullName:   w.fullName }),
+      ...(w.jobTitle?.trim()   && { jobTitle:   w.jobTitle }),
+      ...(w.email?.trim()      && { email:      w.email }),
+      ...(w.phone?.trim()      && { phone:      w.phone }),
+      ...(w.location?.trim()   && { location:   w.location }),
+      ...(w.linkedin?.trim()   && { linkedin:   w.linkedin }),
+      ...(w.website?.trim()    && { website:    w.website }),
+      ...(w.summary?.trim()    && { summary:    w.summary }),
+    },
+    experience: cvData.experience.some((e) => e.company.trim() || e.role.trim())
+      ? cvData.experience
+      : sampleCv.experience,
+    education: cvData.education.some((e) => e.institution.trim() || e.degree.trim())
+      ? cvData.education
+      : sampleCv.education,
+    skills:         skills.length > 0         ? skills         : sampleCv.skills,
+    languages:      languages.length > 0      ? languages      : sampleCv.languages,
+    certifications: certifications.length > 0 ? certifications : sampleCv.certifications,
   }
 
   // Keep store CV data aligned with what the user sees in the live preview.
@@ -313,152 +364,188 @@ export default function EditorPage() {
             <p className="text-xs text-red-500 font-semibold">{importError}</p>
           )}
 
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 flex-wrap">
-            {['Profile', 'Experience', 'Education & Skills', 'Job description'].map((label, i) => {
-              const stepNum = i + 1
-              const active = editorStep === stepNum
-              return (
-                <div key={label} className="flex items-center gap-2">
-                  <div className={`w-7 h-7 rounded-full grid place-items-center ${active ? 'bg-brand-purple text-white' : 'bg-gray-100 text-gray-500'}`}>
-                    {stepNum}
-                  </div>
-                  <span className={active ? 'text-brand-purple' : ''}>{label}</span>
-                  {i < 3 && <div className="w-6 h-px bg-gray-200" />}
-                </div>
-              )
-            })}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full grid place-items-center bg-brand-purple text-white text-xs font-bold">
+                {editorStep}
+              </div>
+              <span className="text-sm font-semibold text-gray-800">{STEP_LABELS[editorStep - 1]}</span>
+            </div>
+            <span className="text-xs text-gray-400">Step {editorStep} of 4</span>
           </div>
 
-          {editorStep === 1 && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField label="Full name" placeholder="Your name" error={errors.fullName?.message} {...register('fullName')} />
-                <FormField label="Job title" placeholder="Product Manager" error={errors.jobTitle?.message} {...register('jobTitle')} />
-              </div>
+          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-brand-purple rounded-full transition-all duration-300"
+              style={{ width: `${(editorStep / 4) * 100}%` }}
+            />
+          </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField label="Email" type="email" placeholder="you@email.com" error={errors.email?.message} {...register('email')} />
-                <FormField label="Phone" type="tel" placeholder="+1 555 123 1234" error={errors.phone?.message} {...register('phone')} />
-              </div>
-
-              <FormField label="Location" placeholder="City, Country" error={errors.location?.message} {...register('location')} />
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <FormField label="LinkedIn" placeholder="linkedin.com/in/you" error={errors.linkedin?.message} {...register('linkedin')} />
-                <FormField label="Website" placeholder="yourportfolio.com" error={errors.website?.message} {...register('website')} />
-              </div>
-
-              <TextareaField
-                label="Professional summary"
-                placeholder="Short intro that highlights your strengths"
-                rows={4}
-                error={errors.summary?.message}
-                {...register('summary')}
-              />
-
-              <div className="flex justify-end pt-2">
-                <Button type="submit" size="lg">Next →</Button>
-              </div>
-            </form>
-          )}
-
-          {editorStep === 2 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-gray-800">Experience</h4>
-                <button onClick={addExperience} className="text-xs font-semibold text-brand-purple">+ Add role</button>
-              </div>
-              {cvData.experience.map((exp) => (
-                <div key={exp.id} className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50/40">
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <FormField label="Company" value={exp.company} onChange={(e) => updateExperience(exp.id, { company: e.target.value })} />
-                    <FormField label="Role" value={exp.role} onChange={(e) => updateExperience(exp.id, { role: e.target.value })} />
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <FormField label="Start" value={exp.startDate} onChange={(e) => updateExperience(exp.id, { startDate: e.target.value })} />
-                    <FormField label="End" value={exp.endDate} onChange={(e) => updateExperience(exp.id, { endDate: e.target.value })} />
-                  </div>
-                  <TextareaField
-                    label="Bullets (one per line)"
-                    rows={4}
-                    value={exp.bullets.join('\n')}
-                    onChange={(e) => updateExperienceBullets(exp.id, e.target.value)}
-                  />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <label className="inline-flex items-center gap-2">
-                      <input type="checkbox" checked={exp.current} onChange={(e) => updateExperience(exp.id, { current: e.target.checked })} className="accent-brand-purple" />
-                      Current role
-                    </label>
-                    <button className="text-red-500" onClick={() => removeExperience(exp.id)}>Remove</button>
-                  </div>
+          <AnimatePresence mode="wait">
+            {editorStep === 1 && (
+              <motion.form
+                key="step-1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                onSubmit={handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <FormField label="Full name" placeholder="Your name" error={errors.fullName?.message} {...register('fullName')} />
+                  <FormField label="Job title" placeholder="Product Manager" error={errors.jobTitle?.message} {...register('jobTitle')} />
                 </div>
-              ))}
-              <div className="flex justify-between pt-2">
-                <Button variant="ghost" onClick={goBack}>← Back</Button>
-                <Button onClick={goNext}>Next →</Button>
-              </div>
-            </div>
-          )}
 
-          {editorStep === 3 && (
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-gray-800">Education</h4>
-                <button onClick={addEducation} className="text-xs font-semibold text-brand-purple">+ Add education</button>
-              </div>
-              {cvData.education.map((edu) => (
-                <div key={edu.id} className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50/40">
-                  <FormField label="Institution" value={edu.institution} onChange={(e) => updateEducation(edu.id, { institution: e.target.value })} />
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <FormField label="Degree" value={edu.degree} onChange={(e) => updateEducation(edu.id, { degree: e.target.value })} />
-                    <FormField label="Field" value={edu.field} onChange={(e) => updateEducation(edu.id, { field: e.target.value })} />
-                  </div>
-                  <FormField label="Year" value={edu.year} onChange={(e) => updateEducation(edu.id, { year: e.target.value })} />
-                  <div className="flex justify-end">
-                    <button className="text-red-500 text-xs" onClick={() => removeEducation(edu.id)}>Remove</button>
-                  </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <FormField label="Email" type="email" placeholder="you@email.com" error={errors.email?.message} {...register('email')} />
+                  <FormField label="Phone" type="tel" placeholder="+1 555 123 1234" error={errors.phone?.message} {...register('phone')} />
                 </div>
-              ))}
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <TagInput label="Skills" value={skills} onChange={(vals) => {
-                  setSkills(vals)
-                  setValue('skills', vals)
-                  setCvData({ ...getCVData(), skills: vals })
-                }} />
-                <TagInput label="Languages" value={languages} onChange={(vals) => {
-                  setLanguages(vals)
-                  setValue('languages', vals)
-                  setCvData({ ...getCVData(), languages: vals })
-                }} />
-              </div>
-              <TagInput label="Certifications" value={certifications} onChange={(vals) => {
-                setCertifications(vals)
-                setValue('certifications', vals)
-                setCvData({ ...getCVData(), certifications: vals })
-              }} />
-              <div className="flex justify-between pt-2">
-                <Button variant="ghost" onClick={goBack}>← Back</Button>
-                <Button onClick={goNext}>Next →</Button>
-              </div>
-            </div>
-          )}
+                <FormField label="Location" placeholder="City, Country" error={errors.location?.message} {...register('location')} />
 
-          {editorStep === 4 && (
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold text-gray-800">Job description</h4>
-              <TextareaField
-                label="Paste job description"
-                rows={8}
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-              />
-              <div className="flex justify-between pt-2">
-                <Button variant="ghost" onClick={goBack}>← Back</Button>
-                <Button onClick={goNext}>Continue to tailor →</Button>
-              </div>
-            </div>
-          )}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <FormField label="LinkedIn" placeholder="linkedin.com/in/you" error={errors.linkedin?.message} {...register('linkedin')} />
+                  <FormField label="Website" placeholder="yourportfolio.com" error={errors.website?.message} {...register('website')} />
+                </div>
+
+                <TextareaField
+                  label="Professional summary"
+                  placeholder="Short intro that highlights your strengths"
+                  rows={4}
+                  error={errors.summary?.message}
+                  {...register('summary')}
+                />
+
+                <div className="flex justify-end pt-2">
+                  <Button type="submit" size="lg">Next →</Button>
+                </div>
+              </motion.form>
+            )}
+
+            {editorStep === 2 && (
+              <motion.div
+                key="step-2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-800">Experience</h4>
+                  <button onClick={addExperience} className="text-xs font-semibold text-brand-purple">+ Add role</button>
+                </div>
+                {cvData.experience.map((exp) => (
+                  <div key={exp.id} className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50/40">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <FormField label="Company" value={exp.company} onChange={(e) => updateExperience(exp.id, { company: e.target.value })} />
+                      <FormField label="Role" value={exp.role} onChange={(e) => updateExperience(exp.id, { role: e.target.value })} />
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <FormField label="Start" value={exp.startDate} onChange={(e) => updateExperience(exp.id, { startDate: e.target.value })} />
+                      <FormField label="End" value={exp.endDate} onChange={(e) => updateExperience(exp.id, { endDate: e.target.value })} />
+                    </div>
+                    <TextareaField
+                      label="Bullets (one per line)"
+                      rows={4}
+                      value={exp.bullets.join('\n')}
+                      onChange={(e) => updateExperienceBullets(exp.id, e.target.value)}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <label className="inline-flex items-center gap-2">
+                        <input type="checkbox" checked={exp.current} onChange={(e) => updateExperience(exp.id, { current: e.target.checked })} className="accent-brand-purple" />
+                        Current role
+                      </label>
+                      {cvData.experience.length > 1 && (
+                        <button className="text-red-500" onClick={() => removeExperience(exp.id)}>Remove</button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div className="flex justify-between pt-2">
+                  <Button variant="ghost" onClick={goBack}>← Back</Button>
+                  <Button onClick={goNext}>Next →</Button>
+                </div>
+              </motion.div>
+            )}
+
+            {editorStep === 3 && (
+              <motion.div
+                key="step-3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-800">Education</h4>
+                  <button onClick={addEducation} className="text-xs font-semibold text-brand-purple">+ Add education</button>
+                </div>
+                {cvData.education.map((edu) => (
+                  <div key={edu.id} className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50/40">
+                    <FormField label="Institution" value={edu.institution} onChange={(e) => updateEducation(edu.id, { institution: e.target.value })} />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <FormField label="Degree" value={edu.degree} onChange={(e) => updateEducation(edu.id, { degree: e.target.value })} />
+                      <FormField label="Field" value={edu.field} onChange={(e) => updateEducation(edu.id, { field: e.target.value })} />
+                    </div>
+                    <FormField label="Year" value={edu.year} onChange={(e) => updateEducation(edu.id, { year: e.target.value })} />
+                    {cvData.education.length > 1 && (
+                      <div className="flex justify-end">
+                        <button className="text-red-500 text-xs" onClick={() => removeEducation(edu.id)}>Remove</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <TagInput label="Skills" value={skills} onChange={(vals) => {
+                    setSkills(vals)
+                    setValue('skills', vals)
+                    setCvData({ ...getCVData(), skills: vals })
+                  }} />
+                  <TagInput label="Languages" value={languages} onChange={(vals) => {
+                    setLanguages(vals)
+                    setValue('languages', vals)
+                    setCvData({ ...getCVData(), languages: vals })
+                  }} />
+                </div>
+                <TagInput label="Certifications" value={certifications} onChange={(vals) => {
+                  setCertifications(vals)
+                  setValue('certifications', vals)
+                  setCvData({ ...getCVData(), certifications: vals })
+                }} />
+                <div className="flex justify-between pt-2">
+                  <Button variant="ghost" onClick={goBack}>← Back</Button>
+                  <Button onClick={goNext}>Next →</Button>
+                </div>
+              </motion.div>
+            )}
+
+            {editorStep === 4 && (
+              <motion.div
+                key="step-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                <h4 className="text-sm font-semibold text-gray-800">Job description</h4>
+                <TextareaField
+                  label="Paste job description"
+                  rows={8}
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                />
+                <div className="flex justify-between pt-2">
+                  <Button variant="ghost" onClick={goBack}>← Back</Button>
+                  <Button onClick={goNext}>Continue to tailor →</Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
