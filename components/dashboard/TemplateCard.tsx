@@ -13,21 +13,25 @@ type Props = {
 
 export default function TemplateCard({ template, isSelected = false, showReason = false, onPreview }: Props) {
   const router = useRouter()
-  const { setTemplate, selectedFlow, setSelectedTemplateId } = useCVBuilderStore()
+  const { setTemplate, selectedFlow, setSelectedTemplateId, setSelectedTemplateBackendId } = useCVBuilderStore()
   const bestForVisible = template.bestFor.slice(0, 2)
   const bestForOverflow = Math.max(0, template.bestFor.length - bestForVisible.length)
 
-  const handleUse = () => {
+  const selectTemplate = () => {
     setTemplate(template.id)
     setSelectedTemplateId(template.id)
+    if (template._backendId) setSelectedTemplateBackendId(template._backendId)
+  }
+
+  const handleUse = () => {
+    selectTemplate()
     if (selectedFlow === 'upload') router.push('/dashboard/preview-filled')
     else router.push('/dashboard/editor')
   }
 
   const handlePreview = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setTemplate(template.id)
-    setSelectedTemplateId(template.id)
+    selectTemplate()
     if (onPreview) onPreview(template.id)
     else router.push('/dashboard/cv/preview')
   }

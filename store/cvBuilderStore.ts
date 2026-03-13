@@ -7,6 +7,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { CVData, PersonalInfo, ExperienceEntry, EducationEntry, TemplateId } from '@/types'
+import type { AtsAnalysisResult } from '@/lib/api/ats'
 import { mockCVData } from '@/mock/cvBuilderMock'
 
 interface CVBuilderState {
@@ -29,6 +30,16 @@ interface CVBuilderState {
   uploadedCvText: string | null
   tailoredCvData: CVData | null
   selectedTemplate: TemplateId
+
+  // Backend state — set after StepJobDesc submits to the API
+  savedCvId: string | null            // UUID of the persisted CV record
+  selectedTemplateBackendId: string | null  // UUID of the selected template
+  atsResult: AtsAnalysisResult | null // last ATS analysis response
+
+  // Actions — Backend
+  setSavedCvId: (id: string | null) => void
+  setSelectedTemplateBackendId: (id: string | null) => void
+  setAtsResult: (result: AtsAnalysisResult | null) => void
 
   // Actions — Flow
   setSelectedFlow: (flow: 'build' | 'upload' | null) => void
@@ -99,6 +110,15 @@ export const useCVBuilderStore = create<CVBuilderState>()(
       tailoredCvData: null,
       selectedTemplate: 'modern',
 
+      // Backend state
+      savedCvId: null,
+      selectedTemplateBackendId: null,
+      atsResult: null,
+
+      setSavedCvId: (id) => set({ savedCvId: id }),
+      setSelectedTemplateBackendId: (id) => set({ selectedTemplateBackendId: id }),
+      setAtsResult: (result) => set({ atsResult: result }),
+
       setSelectedFlow: (flow) => set({ selectedFlow: flow, isUploaded: flow === 'upload' }),
       setSelectedTemplateId: (template) => set({ selectedTemplateId: template, selectedTemplate: template }),
       setStep: (step) => set({ currentStep: step }),
@@ -118,6 +138,9 @@ export const useCVBuilderStore = create<CVBuilderState>()(
         uploadedCvText: null,
         tailoredCvData: null,
         selectedTemplate: 'modern',
+        savedCvId: null,
+        selectedTemplateBackendId: null,
+        atsResult: null,
         ...fromCvData(initialCv),
       }),
 
@@ -200,6 +223,9 @@ export const useCVBuilderStore = create<CVBuilderState>()(
         tailoredCvData: state.tailoredCvData,
         selectedTemplate: state.selectedTemplate,
         editorStep: state.editorStep,
+        savedCvId: state.savedCvId,
+        selectedTemplateBackendId: state.selectedTemplateBackendId,
+        atsResult: state.atsResult,
       }),
     }
   )

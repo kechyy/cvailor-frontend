@@ -8,7 +8,6 @@ import KeywordChips from '@/components/dashboard/KeywordChips'
 import CoverLetterPanel from '@/components/dashboard/CoverLetterPanel'
 import { renderTemplate, templateRegistry } from '@/components/dashboard/cv-templates/registry'
 import {
-  mockTailoredCV,
   mockAtsScore,
   mockScoreBreakdown,
   mockMatchedKeywords,
@@ -18,14 +17,7 @@ import {
 } from '@/mock/previewMock'
 import { mockCV_TechSenior } from '@/mock/cvBuilderMock'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
-import type { TemplateId } from '@/types'
-
-const scoreItems = [
-  { label: 'Keywords match', value: mockScoreBreakdown.keywordsMatch, color: '#5B4FCF' },
-  { label: 'Experience fit', value: mockScoreBreakdown.experienceFit, color: '#2ECC8F' },
-  { label: 'Skills alignment', value: mockScoreBreakdown.skillsAlignment, color: '#F59E0B' },
-  { label: 'Summary strength', value: mockScoreBreakdown.summaryStrength, color: '#8B5CF6' },
-]
+import type { ScoreBreakdown, TemplateId } from '@/types'
 
 export default function PreviewPage() {
   const {
@@ -37,7 +29,9 @@ export default function PreviewPage() {
     skills,
     languages,
     certifications,
+    atsResult,          // real ATS data set by StepJobDesc after API call
   } = useCVBuilderStore()
+
   const [activeTab, setActiveTab] = useState<'insights' | 'cover'>('insights')
   const [dismissedTips, setDismissedTips] = useState<number[]>([])
 
@@ -52,6 +46,22 @@ export default function PreviewPage() {
   const cvData = hasUserCv
     ? { personal, experience, education, skills, languages, certifications }
     : mockCV_TechSenior
+
+  // Use real ATS data from the backend if available, otherwise show mock data.
+  // This means the page works correctly both after a real API submission
+  // and when navigating directly during development.
+  const atsScore        = atsResult?.ats_score        ?? mockAtsScore
+  const scoreBreakdown: ScoreBreakdown = atsResult?.score_breakdown ?? mockScoreBreakdown
+  const matchedKeywords = atsResult?.matched_keywords ?? mockMatchedKeywords
+  const missingKeywords = atsResult?.missing_keywords ?? mockMissingKeywords
+  const atsTips         = atsResult?.tips             ?? mockAtsTips
+
+  const scoreItems = [
+    { label: 'Keywords match',   value: scoreBreakdown.keywordsMatch,   color: '#5B4FCF' },
+    { label: 'Experience fit',   value: scoreBreakdown.experienceFit,   color: '#2ECC8F' },
+    { label: 'Skills alignment', value: scoreBreakdown.skillsAlignment, color: '#F59E0B' },
+    { label: 'Summary strength', value: scoreBreakdown.summaryStrength, color: '#8B5CF6' },
+  ]
 
   return (
     <>
@@ -91,7 +101,7 @@ export default function PreviewPage() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {renderTemplate(selectedTemplate, { cv: cvData, matchedKeywords: mockMatchedKeywords })}
+                {renderTemplate(selectedTemplate, { cv: cvData, matchedKeywords })}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -116,7 +126,7 @@ export default function PreviewPage() {
 
           {/* ATS Score meter */}
           <div className="flex justify-center pt-2">
-            <AtsScoreMeter score={mockAtsScore} />
+            <AtsScoreMeter score={atsScore} />
           </div>
 
           {/* Score breakdown */}
@@ -166,14 +176,14 @@ export default function PreviewPage() {
                   exit={{ opacity: 0, y: -6 }}
                   className="space-y-4"
                 >
-                  <KeywordChips matched={mockMatchedKeywords} missing={mockMissingKeywords} />
+                  <KeywordChips matched={matchedKeywords} missing={missingKeywords} />
 
                   {/* ATS tips */}
                   <div>
                     <p className="text-xs font-semibold text-gray-600 mb-2">AI suggestions</p>
                     <div className="space-y-2">
                       <AnimatePresence>
-                        {mockAtsTips.filter((_, i) => !dismissedTips.includes(i)).map((tip, i) => (
+                        {atsTips.filter((_, i) => !dismissedTips.includes(i)).map((tip, i) => (
                           <motion.div key={tip}
                             initial={{ opacity: 1 }}
                             exit={{ opacity: 0, height: 0 }}
@@ -199,7 +209,7 @@ export default function PreviewPage() {
                 >
                   <CoverLetterPanel
                     coverLetter={mockCoverLetter}
-                    candidateName={cvData.personal.fullName || mockTailoredCV.personal.fullName}
+                    candidateName={cvData.personal.fullName}
                   />
                 </motion.div>
               )}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import RouteProgress from '@/components/RouteProgress'
+import Providers from '@/components/Providers'
 
 export const metadata: Metadata = {
   title: 'SmartCV — AI-Tailored Resumes in Minutes',
@@ -11,8 +12,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <RouteProgress />
-        {children}
+        <Providers>
+          <RouteProgress />
+          {children}
+        </Providers>
       </body>
     </html>
   )

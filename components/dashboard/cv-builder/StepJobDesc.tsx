@@ -8,18 +8,31 @@ import { TextareaField } from '@/components/ui/TextareaField'
 import { Button } from '@/components/ui/Button'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
 import { jobDescriptionSchema, type JobDescriptionFormData } from '@/lib/validations'
+import { createCV } from '@/lib/api/cvs'
+import { runAtsReview } from '@/lib/api/ats'
+import { ApiError } from '@/lib/api/client'
 
 export default function StepJobDesc() {
-  const { jobDescription, setJobDescription, prevStep } = useCVBuilderStore()
+  const {
+    jobDescription,
+    setJobDescription,
+    prevStep,
+    getCVData,
+    selectedTemplateBackendId,
+    setSavedCvId,
+    setAtsResult,
+  } = useCVBuilderStore()
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [scanPhase, setScanPhase] = useState(0)
+  const [apiError, setApiError] = useState<string | null>(null)
   const router = useRouter()
 
   const scanMessages = [
     'Scanning job description…',
     'Detecting key requirements…',
     'Matching your experience…',
-    'Tailoring your CV…',
+    'Running ATS analysis…',
     'Almost ready…',
   ]
 
@@ -37,16 +50,49 @@ export default function StepJobDesc() {
   const jdValue = watch('jobDescription') ?? ''
 
   const onSubmit = async (data: JobDescriptionFormData) => {
+    setApiError(null)
     setJobDescription(data.jobDescription)
     setIsGenerating(true)
+    setScanPhase(0)
 
-    // Mock AI processing animation
-    for (let i = 0; i < scanMessages.length; i++) {
-      setScanPhase(i)
-      await new Promise((r) => setTimeout(r, 600))
+    try {
+      // Phase 1 — Save the CV to the backend
+      setScanPhase(1)
+      const cvData = getCVData()
+      const savedCV = await createCV({
+        cvData,
+        jobDescription: data.jobDescription,
+        targetCompany: '',
+        extractedKeywords: [],
+        templateBackendId: selectedTemplateBackendId ?? undefined,
+      })
+      setSavedCvId(savedCV.id)
+
+      // Phase 2 — Run ATS analysis against the job description
+      setScanPhase(2)
+      const atsResult = await runAtsReview({
+        cv_id: savedCV.id,
+        job_description: data.jobDescription,
+      })
+      setAtsResult(atsResult)
+
+      // Phase 3 — Navigate to preview with real data in store
+      setScanPhase(4)
+      await new Promise((r) => setTimeout(r, 400))   // brief pause so the last message is visible
+      router.push('/dashboard/cv/preview')
+
+    } catch (err) {
+      setIsGenerating(false)
+      setScanPhase(0)
+
+      if (err instanceof ApiError && err.isUnauthorized) {
+        setApiError('Please sign in to save your CV.')
+      } else {
+        // Non-auth error: still navigate to preview but with no real ATS data
+        // The preview page falls back to mock data in this case
+        router.push('/dashboard/cv/preview')
+      }
     }
-
-    router.push('/dashboard/cv/preview')
   }
 
   return (
@@ -88,6 +134,10 @@ export default function StepJobDesc() {
               AI is ready to analyse this job description
             </span>
           </motion.div>
+        )}
+
+        {apiError && (
+          <p className="text-sm text-red-600 font-medium text-center">{apiError}</p>
         )}
 
         <div className="flex justify-between pt-2">

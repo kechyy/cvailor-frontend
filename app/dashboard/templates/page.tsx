@@ -1,41 +1,65 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import TemplateCard from '@/components/dashboard/TemplateCard'
-import { mockTemplates } from '@/mock/templatesMock'
 import { useCVBuilderStore } from '@/store/cvBuilderStore'
-import type { JobCategory } from '@/types'
+import { fetchTemplates } from '@/lib/api/templates'
+import { mockTemplates } from '@/mock/templatesMock'
+import type { CVTemplate, JobCategory } from '@/types'
 
 type Filter = { label: string; value: 'all' | JobCategory; description: string }
 
 const filters: Filter[] = [
-  { label: 'All', value: 'all', description: 'All 7 professional CV archetypes' },
-  { label: 'Tech', value: 'tech', description: 'ATS-optimised for FAANG, startups & engineering roles' },
-  { label: 'Finance', value: 'finance', description: 'Conservative serif for banking, law & accounting' },
-  { label: 'General', value: 'general', description: 'Professional & Academic — works across industries' },
-  { label: 'Academic', value: 'general', description: 'Education-first layouts for research & academia' },
-  { label: 'Executive', value: 'executive', description: 'Premium layouts for Director, VP & C-suite roles' },
-  { label: 'Healthcare', value: 'healthcare', description: 'Clean, readable — passes NHS & hospital ATS systems' },
-  { label: 'Creative', value: 'creative', description: 'Visual layouts for design, UX, media & branding' },
+  { label: 'All',        value: 'all',       description: 'All 7 professional CV archetypes' },
+  { label: 'Tech',       value: 'tech',      description: 'ATS-optimised for FAANG, startups & engineering roles' },
+  { label: 'Finance',    value: 'finance',   description: 'Conservative serif for banking, law & accounting' },
+  { label: 'General',    value: 'general',   description: 'Professional & Academic — works across industries' },
+  { label: 'Academic',   value: 'general',   description: 'Education-first layouts for research & academia' },
+  { label: 'Executive',  value: 'executive', description: 'Premium layouts for Director, VP & C-suite roles' },
+  { label: 'Healthcare', value: 'healthcare',description: 'Clean, readable — passes NHS & hospital ATS systems' },
+  { label: 'Creative',   value: 'creative',  description: 'Visual layouts for design, UX, media & branding' },
 ]
 
 export default function TemplatesPage() {
   const { selectedTemplate, selectedFlow, setSelectedFlow } = useCVBuilderStore()
   const [activeFilter, setActiveFilter] = useState<Filter>(filters[0])
+  const [templates, setTemplates] = useState<CVTemplate[]>(mockTemplates)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!selectedFlow) {
-      // Default to build flow if user navigates directly from dashboard nav
-      setSelectedFlow('build')
-    }
+    if (!selectedFlow) setSelectedFlow('build')
   }, [selectedFlow, setSelectedFlow])
 
-  const filtered = useMemo(() => {
-    if (activeFilter.value === 'all') return mockTemplates
-    return mockTemplates.filter((t) => t.categories.includes(activeFilter.value as JobCategory))
+  // Fetch from backend on mount and whenever the active category tab changes.
+  // Falls back to mock data if the API is unreachable (dev without a running server).
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      try {
+        const { templates: apiTemplates } = await fetchTemplates(
+          activeFilter.value !== 'all' ? activeFilter.value : undefined,
+        )
+        if (!cancelled) setTemplates(apiTemplates)
+      } catch {
+        if (!cancelled) {
+          const fallback =
+            activeFilter.value === 'all'
+              ? mockTemplates
+              : mockTemplates.filter((t) => t.categories.includes(activeFilter.value as JobCategory))
+          setTemplates(fallback)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
   }, [activeFilter.value])
 
-  const recommended = mockTemplates.find((t) => t.isAiRecommended)
+  const recommended = templates.find((t) => t.isAiRecommended)
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -75,10 +99,10 @@ export default function TemplatesPage() {
         {/* Filter tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
           {filters.map((f) => {
-            const isActive = activeFilter.value === f.value
+            const isActive = activeFilter.label === f.label
             return (
               <button
-                key={f.value}
+                key={f.label}
                 onClick={() => setActiveFilter(f)}
                 className="px-4 py-2 text-sm font-semibold rounded-full transition-colors shrink-0"
                 style={{
@@ -96,7 +120,7 @@ export default function TemplatesPage() {
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeFilter.value}
+            key={activeFilter.label}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
@@ -104,7 +128,7 @@ export default function TemplatesPage() {
             className="mb-5"
           >
             <p style={{ fontSize: 12, color: '#6B7280' }}>
-              {activeFilter.description} — {filtered.length} template{filtered.length === 1 ? '' : 's'}
+              {activeFilter.description} — {loading ? '…' : `${templates.length} template${templates.length === 1 ? '' : 's'}`}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -112,14 +136,14 @@ export default function TemplatesPage() {
         {/* Template grid */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${activeFilter.value}-grid`}
+            key={`${activeFilter.label}-grid`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5"
           >
-            {filtered.map((template) => (
+            {templates.map((template) => (
               <motion.div
                 key={template.id}
                 initial={{ opacity: 0, y: 8 }}

@@ -1,6 +1,9 @@
 'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import AuthLayout from '@/components/auth/AuthLayout'
 import OAuthButtons from '@/components/auth/OAuthButtons'
@@ -10,15 +13,30 @@ import { Button } from '@/components/ui/Button'
 import { signInSchema, type SignInFormData } from '@/lib/validations'
 
 export default function SignInPage() {
+  const router = useRouter()
+  const [serverError, setServerError] = useState<string | null>(null)
+
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     mode: 'onBlur',
   })
 
   const onSubmit = async (data: SignInFormData) => {
-    // REPLACE WITH: signIn('credentials', data)
-    await new Promise(r => setTimeout(r, 1000))
-    window.location.href = '/dashboard'
+    setServerError(null)
+
+    const result = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setServerError('Incorrect email or password. Please try again.')
+      return
+    }
+
+    router.push('/dashboard')
+    router.refresh()
   }
 
   return (
@@ -42,6 +60,9 @@ export default function SignInPage() {
           <input type="checkbox" id="remember" className="w-4 h-4 rounded border-gray-300 accent-brand-purple" {...register('remember')} />
           <label htmlFor="remember" className="text-sm text-gray-500">Remember me for 30 days</label>
         </div>
+        {serverError && (
+          <p className="text-sm text-red-600 font-medium text-center">{serverError}</p>
+        )}
         <Button type="submit" size="lg" loading={isSubmitting} className="w-full justify-center">
           Sign in →
         </Button>

@@ -9,12 +9,6 @@ import { z } from 'zod'
 const requiredString = (label: string) =>
   z.string().min(1, `${label} is required`)
 
-const optionalUrl = z
-  .string()
-  .url('Must be a valid URL')
-  .optional()
-  .or(z.literal(''))
-
 // ── Auth schemas ───────────────────────────────────────────────
 export const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email address'),
@@ -70,8 +64,8 @@ export const personalInfoSchema = z.object({
     .min(1, 'Phone number is required')
     .regex(/^[+\d\s\-()]{7,20}$/, 'Enter a valid phone number'),
   location: requiredString('Location').max(100),
-  linkedin: optionalUrl,
-  website: optionalUrl,
+  linkedin: z.string().optional(),
+  website: z.string().optional(),
   summary: z.string().max(500, 'Summary must be under 500 characters').optional().or(z.literal('')),
 })
 

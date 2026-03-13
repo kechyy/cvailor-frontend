@@ -1,6 +1,9 @@
 'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import AuthLayout from '@/components/auth/AuthLayout'
 import OAuthButtons from '@/components/auth/OAuthButtons'
@@ -8,17 +11,52 @@ import Divider from '@/components/auth/Divider'
 import { FormField } from '@/components/ui/FormField'
 import { Button } from '@/components/ui/Button'
 import { signUpSchema, type SignUpFormData } from '@/lib/validations'
+import { registerUser } from '@/lib/api/auth'
+import { ApiError } from '@/lib/api/client'
 
 export default function SignUpPage() {
+  const router = useRouter()
+  const [serverError, setServerError] = useState<string | null>(null)
+
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     mode: 'onBlur',
   })
 
   const onSubmit = async (data: SignUpFormData) => {
-    // REPLACE WITH: signUp(data) then redirect to /auth/verify-email
-    await new Promise(r => setTimeout(r, 1000))
-    window.location.href = '/auth/verify-email'
+    setServerError(null)
+
+    try {
+      // 1. Create the account on the backend
+      await registerUser({
+        email: data.email,
+        password: data.password,
+        full_name: `${data.firstName} ${data.lastName}`,
+      })
+    } catch (err) {
+      if (err instanceof ApiError && err.isConflict) {
+        setServerError('An account with this email already exists.')
+      } else {
+        setServerError('Something went wrong. Please try again.')
+      }
+      return
+    }
+
+    // 2. Sign in immediately so the user lands on the dashboard with a valid session
+    const result = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      // Account was created but sign-in failed — send them to sign-in page
+      router.push('/auth/signin')
+      return
+    }
+
+    router.push('/dashboard')
+    router.refresh()
   }
 
   return (
@@ -52,6 +90,9 @@ export default function SignUpPage() {
             )}
           </div>
         </div>
+        {serverError && (
+          <p className="text-sm text-red-600 font-medium text-center">{serverError}</p>
+        )}
         <Button type="submit" size="lg" loading={isSubmitting} className="w-full justify-center">
           Create account →
         </Button>

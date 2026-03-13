@@ -89,6 +89,8 @@ export interface CVTemplate {
   layout: LayoutType
   industryReason: string
   sampleCV: CVData
+  /** Backend UUID — only present when template was fetched from the API */
+  _backendId?: string
 }
 
 export interface DashboardStats {
