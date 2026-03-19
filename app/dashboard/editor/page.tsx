@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -15,8 +15,11 @@ import { personalInfoSchema } from '@/lib/validations'
 import type { CVData, EducationEntry, ExperienceEntry } from '@/types'
 import { mockCV_TechSenior } from '@/mock/cvBuilderMock'
 import { mockTemplates } from '@/mock/templatesMock'
+import { getOrCreateResume, saveResume } from '@/lib/api/resumes'
 
 const STEP_LABELS = ['Profile', 'Experience', 'Education & Skills', 'Job description']
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 type FormValues = {
   fullName: string
@@ -47,9 +50,16 @@ export default function EditorPage() {
     nextEditorStep,
     prevEditorStep,
     jobDescription,
+    setSelectedResumeId,
     setJobDescription,
   } = useCVBuilderStore()
   const [imported, setImported] = useState(false)
+
+  // ── Copy-on-write resume state ─────────────────────────────────────────────
+  const resumeIdRef = useRef<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [resumeLoaded, setResumeLoaded] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Guard: must have chosen a flow and template
   useEffect(() => {
@@ -73,35 +83,81 @@ export default function EditorPage() {
     }
   }, [setEditorStep])
 
-  // Seed experience & education from the selected template's sample CV.
-  // Re-runs when template changes. Preserves entries only if they have real user content
-  // (non-mock ID AND non-empty text). Blank entries or mock-seeded entries always get replaced.
+  // ── Load user resume from backend on mount (get-or-create) ────────────────
   useEffect(() => {
-    if (!selectedFlow || selectedFlow !== 'build' || !selectedTemplateId) return
+    if (!selectedTemplateId) return
+    let cancelled = false
 
-    const { getCVData: getData, setCvData: setData } = useCVBuilderStore.getState()
-    const isMockId = (id: string) => /^[a-z]+_\d{1,6}$/.test(id)
-    const current = getData()
+    async function load() {
+      // Resolve this template's sample CV — used as placeholder for new users.
+      const seed = mockTemplates.find((t) => t.id === selectedTemplateId)?.sampleCV ?? mockCV_TechSenior
 
-    // "Real user content" requires a non-mock ID AND actual text in key fields
-    const hasUserExp = current.experience.some((e) => !isMockId(e.id) && e.company.trim())
-    const hasUserEdu = current.education.some((e) => !isMockId(e.id) && e.institution.trim())
+      // Helper: populate both the store and the RHF form from any CVData object.
+      const applyToForm = (data: CVData) => {
+        setCvData(data)
+        setSkills(data.skills ?? [])
+        setLanguages(data.languages ?? [])
+        setCertifications(data.certifications ?? [])
+        const p = data.personal ?? {}
+        setValue('fullName', p.fullName ?? '')
+        setValue('jobTitle', p.jobTitle ?? '')
+        setValue('email', p.email ?? '')
+        setValue('phone', p.phone ?? '')
+        setValue('location', p.location ?? '')
+        setValue('linkedin', p.linkedin ?? '')
+        setValue('website', p.website ?? '')
+        setValue('summary', p.summary ?? '')
+      }
 
-    if (hasUserExp && hasUserEdu) return
+      try {
+        const resume = await getOrCreateResume(selectedTemplateId!)
+        if (cancelled) return
 
-    const sample = mockTemplates.find((t) => t.id === selectedTemplateId)?.sampleCV ?? mockCV_TechSenior
-    const now = Date.now()
+        resumeIdRef.current = resume.id
+        setSelectedResumeId(resume.id)
 
-    setData({
-      ...current,
-      experience: hasUserExp
-        ? current.experience
-        : sample.experience.map((e, i) => ({ ...e, id: `exp_${now + i}` })),
-      education: hasUserEdu
-        ? current.education
-        : sample.education.map((e, i) => ({ ...e, id: `edu_${now + i}` })),
-    })
-  }, [selectedFlow, selectedTemplateId])
+        // If user has previously saved real content, restore it; otherwise seed
+        // BOTH panels with the template's sample so they see a fully-filled
+        // starting point they can edit.  The template record itself is never
+        // written — only the user's own user_resume will be saved later.
+        const hasContent =
+          resume.content?.personal?.fullName ||
+          resume.content?.personal?.email ||
+          (resume.content?.experience ?? []).length > 0
+
+        applyToForm(hasContent ? (resume.content as CVData) : seed)
+        setResumeLoaded(true)
+      } catch {
+        // Backend unavailable — seed with template placeholder so editor is usable.
+        applyToForm(seed)
+        setResumeLoaded(true)
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTemplateId])
+
+  // ── Debounced auto-save ────────────────────────────────────────────────────
+  const triggerSave = useCallback((data: CVData) => {
+    if (!resumeIdRef.current) return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    setSaveStatus('saving')
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await saveResume(resumeIdRef.current!, data)
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus('idle'), 2000)
+      } catch {
+        setSaveStatus('error')
+      }
+    }, 500)
+  }, [])
+
+  useEffect(() => () => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+  }, [])
 
   const defaultValues = useMemo(() => ({
     fullName: cvData.personal.fullName,
@@ -145,7 +201,6 @@ export default function EditorPage() {
     defaultValues,
     mode: 'onBlur',
   })
-  // register array fields so RHF keeps them
   register('skills')
   register('languages')
   register('certifications')
@@ -161,6 +216,7 @@ export default function EditorPage() {
       certifications,
     }
     setCvData(updated)
+    triggerSave(updated)
     nextEditorStep()
   }
 
@@ -188,7 +244,6 @@ export default function EditorPage() {
     setImportError(null)
     setPreviousCv(cvData)
     setImporting(true)
-    // Placeholder: await backend integration. We only show success feedback.
     setTimeout(() => {
       setImported(true)
       setImporting(false)
@@ -205,44 +260,43 @@ export default function EditorPage() {
     setPreviousCv(null)
   }
 
-  // Live preview: use template's sampleCV as base, overlay user's non-empty input.
-  // Empty fields fall back to sample data so the template always looks populated.
-  const sampleCv = mockTemplates.find((t) => t.id === (selectedTemplateId || 'modern'))?.sampleCV ?? mockCV_TechSenior
   const w = watched ?? {}
+
+  // Right-panel preview: mirrors the left-panel form exactly in real-time.
+  // Personal fields use the live watched values (updated on every keystroke).
+  // Experience / education / tags come from cvData (updated on every onChange).
+  // Both panels are seeded from the template's sampleCv when the user has no
+  // saved content, so they always start from a fully-filled placeholder.
   const previewCv: CVData = {
-    ...sampleCv,
+    ...cvData,
     personal: {
-      ...sampleCv.personal,
-      ...(w.fullName?.trim()   && { fullName:   w.fullName }),
-      ...(w.jobTitle?.trim()   && { jobTitle:   w.jobTitle }),
-      ...(w.email?.trim()      && { email:      w.email }),
-      ...(w.phone?.trim()      && { phone:      w.phone }),
-      ...(w.location?.trim()   && { location:   w.location }),
-      ...(w.linkedin?.trim()   && { linkedin:   w.linkedin }),
-      ...(w.website?.trim()    && { website:    w.website }),
-      ...(w.summary?.trim()    && { summary:    w.summary }),
+      ...cvData.personal,
+      fullName:   w.fullName   ?? cvData.personal.fullName,
+      jobTitle:   w.jobTitle   ?? cvData.personal.jobTitle,
+      email:      w.email      ?? cvData.personal.email,
+      phone:      w.phone      ?? cvData.personal.phone,
+      location:   w.location   ?? cvData.personal.location,
+      linkedin:   w.linkedin   ?? cvData.personal.linkedin,
+      website:    w.website    ?? cvData.personal.website,
+      summary:    w.summary    ?? cvData.personal.summary,
     },
-    experience: cvData.experience.some((e) => e.company.trim() || e.role.trim())
-      ? cvData.experience
-      : sampleCv.experience,
-    education: cvData.education.some((e) => e.institution.trim() || e.degree.trim())
-      ? cvData.education
-      : sampleCv.education,
-    skills:         skills.length > 0         ? skills         : sampleCv.skills,
-    languages:      languages.length > 0      ? languages      : sampleCv.languages,
-    certifications: certifications.length > 0 ? certifications : sampleCv.certifications,
+    skills,
+    languages,
+    certifications,
   }
 
-  // Keep store CV data aligned with what the user sees in the live preview.
+  // Keep store CV data aligned with live preview; auto-save on every personal-field change.
   useEffect(() => {
     if (!watched) return
     const base = getCVData()
+    // Extract only PersonalInfo fields from watched (exclude tag arrays registered separately)
+    const { skills: _s, languages: _l, certifications: _c, ...personalFields } = watched
     const next: CVData = {
       ...base,
-      personal: { ...base.personal, ...watched },
-      skills: watched.skills ?? skills,
-      languages: watched.languages ?? languages,
-      certifications: watched.certifications ?? certifications,
+      personal: { ...base.personal, ...personalFields },
+      skills: skills,
+      languages: languages,
+      certifications: certifications,
     }
     const changed =
       JSON.stringify(next.personal) !== JSON.stringify(base.personal) ||
@@ -250,12 +304,17 @@ export default function EditorPage() {
       JSON.stringify(next.languages) !== JSON.stringify(base.languages) ||
       JSON.stringify(next.certifications) !== JSON.stringify(base.certifications)
 
-    if (changed) setCvData(next)
-  }, [watched, skills, languages, certifications, getCVData, setCvData])
+    if (changed) {
+      setCvData(next)
+      triggerSave(next)
+    }
+  }, [watched, skills, languages, certifications, getCVData, setCvData, triggerSave])
 
   const updateExperience = (id: string, partial: Partial<ExperienceEntry>) => {
     const next = cvData.experience.map((e) => (e.id === id ? { ...e, ...partial } : e))
-    setCvData({ ...cvData, experience: next })
+    const updated = { ...cvData, experience: next }
+    setCvData(updated)
+    triggerSave(updated)
   }
   const updateExperienceBullets = (id: string, text: string) => {
     updateExperience(id, { bullets: text.split('\n').filter((b) => b.trim()) })
@@ -273,12 +332,16 @@ export default function EditorPage() {
     setCvData({ ...cvData, experience: [...cvData.experience, entry] })
   }
   const removeExperience = (id: string) => {
-    setCvData({ ...cvData, experience: cvData.experience.filter((e) => e.id !== id) })
+    const updated = { ...cvData, experience: cvData.experience.filter((e) => e.id !== id) }
+    setCvData(updated)
+    triggerSave(updated)
   }
 
   const updateEducation = (id: string, partial: Partial<EducationEntry>) => {
     const next = cvData.education.map((e) => (e.id === id ? { ...e, ...partial } : e))
-    setCvData({ ...cvData, education: next })
+    const updated = { ...cvData, education: next }
+    setCvData(updated)
+    triggerSave(updated)
   }
   const addEducation = () => {
     const entry: EducationEntry = {
@@ -291,7 +354,9 @@ export default function EditorPage() {
     setCvData({ ...cvData, education: [...cvData.education, entry] })
   }
   const removeEducation = (id: string) => {
-    setCvData({ ...cvData, education: cvData.education.filter((e) => e.id !== id) })
+    const updated = { ...cvData, education: cvData.education.filter((e) => e.id !== id) }
+    setCvData(updated)
+    triggerSave(updated)
   }
 
   const goNext = () => {
@@ -302,7 +367,6 @@ export default function EditorPage() {
     if (editorStep > 1) prevEditorStep()
   }
 
-  // Ensure step stays in bounds and reset if persisted invalid
   useEffect(() => {
     if (editorStep < 1 || editorStep > 4) setEditorStep(1)
   }, [editorStep, setEditorStep])
@@ -314,6 +378,7 @@ export default function EditorPage() {
         subtitle="Make quick tweaks before tailoring to a job"
         action={
           <div className="flex gap-2 text-xs text-gray-400 items-center">
+            <SaveIndicator status={saveStatus} />
             <button onClick={() => { setSelectedFlow('build'); setSelectedTemplateId(selectedTemplateId || 'modern'); }} className="underline">Switch template</button>
             {isDev && (
               <button onClick={loadLongCv} className="underline text-brand-purple">
@@ -357,7 +422,7 @@ export default function EditorPage() {
 
           {imported && (
             <p className="text-xs text-brand-green font-semibold flex items-center gap-1.5">
-              <span>✓</span> LinkedIn import queued — your current data stayed unchanged. We’ll sync once connected.
+              <span>✓</span> LinkedIn import queued — your current data stayed unchanged. We'll sync once connected.
             </p>
           )}
           {importError && (
@@ -503,18 +568,24 @@ export default function EditorPage() {
                   <TagInput label="Skills" value={skills} onChange={(vals) => {
                     setSkills(vals)
                     setValue('skills', vals)
-                    setCvData({ ...getCVData(), skills: vals })
+                    const updated = { ...getCVData(), skills: vals }
+                    setCvData(updated)
+                    triggerSave(updated)
                   }} />
                   <TagInput label="Languages" value={languages} onChange={(vals) => {
                     setLanguages(vals)
                     setValue('languages', vals)
-                    setCvData({ ...getCVData(), languages: vals })
+                    const updated = { ...getCVData(), languages: vals }
+                    setCvData(updated)
+                    triggerSave(updated)
                   }} />
                 </div>
                 <TagInput label="Certifications" value={certifications} onChange={(vals) => {
                   setCertifications(vals)
                   setValue('certifications', vals)
-                  setCvData({ ...getCVData(), certifications: vals })
+                  const updated = { ...getCVData(), certifications: vals }
+                  setCvData(updated)
+                  triggerSave(updated)
                 }} />
                 <div className="flex justify-between pt-2">
                   <Button variant="ghost" onClick={goBack}>← Back</Button>
@@ -563,4 +634,12 @@ export default function EditorPage() {
       </div>
     </>
   )
+}
+
+function SaveIndicator({ status }: { status: SaveStatus }) {
+  if (status === 'idle') return null
+  if (status === 'saving') return <span className="text-gray-400 animate-pulse">Saving…</span>
+  if (status === 'saved') return <span className="text-green-500 font-semibold">Saved</span>
+  if (status === 'error') return <span className="text-red-400">Save failed</span>
+  return null
 }

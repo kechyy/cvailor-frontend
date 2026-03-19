@@ -3,22 +3,22 @@ import { getSession } from 'next-auth/react'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  /** Field-level error details from the {error:{code,message,details}} envelope. */
+  readonly details: Record<string, string>
+
+  constructor(
+    public readonly status: number,
+    message: string,
+    details: Record<string, string> = {},
+  ) {
     super(message)
     this.name = 'ApiError'
+    this.details = details
   }
 
-  get isUnauthorized() {
-    return this.status === 401
-  }
-
-  get isNotFound() {
-    return this.status === 404
-  }
-
-  get isConflict() {
-    return this.status === 409
-  }
+  get isUnauthorized() { return this.status === 401 }
+  get isNotFound() { return this.status === 404 }
+  get isConflict() { return this.status === 409 }
 }
 
 async function getAccessToken(): Promise<string | null> {
@@ -47,7 +47,12 @@ export async function apiRequest<T>(
   const body = await res.json().catch(() => ({}))
 
   if (!res.ok) {
-    throw new ApiError(res.status, body.detail ?? `Request failed: ${res.status}`)
+    // Our error envelope: { error: { code, message, details } }
+    // FastAPI validation: { detail: "..." }  — fallback for unexpected shapes
+    const envelope = body?.error
+    const message = envelope?.message ?? body?.detail ?? `Request failed: ${res.status}`
+    const details: Record<string, string> = envelope?.details ?? {}
+    throw new ApiError(res.status, message, details)
   }
 
   return body as T

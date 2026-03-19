@@ -139,3 +139,30 @@ export interface CoverLetter {
   paragraph3: string
   signOff: string
 }
+
+// ── CV Tailor feature ─────────────────────────────────────────────────────────
+
+export interface TailorResult {
+  /** Tailored CV content — same shape as CVData (jobContext field is optional extra). */
+  tailored_cv: CVData
+  /** Estimated ATS match score 0–100. */
+  ats_score: number
+  /** Keywords found in both the CV and the job description. */
+  matched_keywords: string[]
+  /** Important job description keywords absent from the CV. */
+  missing_keywords: string[]
+  /** Concise list of specific changes the AI made. */
+  improvements_made: string[]
+  /** Actionable advice for the candidate to further improve their profile. */
+  suggestions: string[]
+  /** UUID of the saved history record (for reference / download). */
+  tailor_history_id: string
+}
+
+export interface TailorApiError {
+  error: {
+    code: string
+    message: string
+    details: Record<string, string>
+  }
+}

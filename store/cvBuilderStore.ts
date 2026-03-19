@@ -8,7 +8,6 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { CVData, PersonalInfo, ExperienceEntry, EducationEntry, TemplateId } from '@/types'
 import type { AtsAnalysisResult } from '@/lib/api/ats'
-import { mockCVData } from '@/mock/cvBuilderMock'
 
 interface CVBuilderState {
   // Flow
@@ -35,11 +34,14 @@ interface CVBuilderState {
   savedCvId: string | null            // UUID of the persisted CV record
   selectedTemplateBackendId: string | null  // UUID of the selected template
   atsResult: AtsAnalysisResult | null // last ATS analysis response
+  /** ID of the user_resume record for the active template (set by the editor on load). */
+  selectedResumeId: string | null
 
   // Actions — Backend
   setSavedCvId: (id: string | null) => void
   setSelectedTemplateBackendId: (id: string | null) => void
   setAtsResult: (result: AtsAnalysisResult | null) => void
+  setSelectedResumeId: (id: string | null) => void
 
   // Actions — Flow
   setSelectedFlow: (flow: 'build' | 'upload' | null) => void
@@ -76,11 +78,6 @@ interface CVBuilderState {
   getCVData: () => CVData
 }
 
-const defaultPersonal: PersonalInfo = {
-  fullName: '', jobTitle: '', email: '',
-  phone: '', location: '', linkedin: '', website: '', summary: '',
-}
-
 const fromCvData = (cv: CVData) => ({
   cvData: cv,
   personal: cv.personal,
@@ -91,7 +88,14 @@ const fromCvData = (cv: CVData) => ({
   certifications: cv.certifications,
 })
 
-const initialCv = mockCVData
+const initialCv: CVData = {
+  personal: { fullName: '', jobTitle: '', email: '', phone: '', location: '', linkedin: '', website: '', summary: '' },
+  experience: [],
+  education: [],
+  skills: [],
+  languages: [],
+  certifications: [],
+}
 
 export const useCVBuilderStore = create<CVBuilderState>()(
   persist(
@@ -114,10 +118,12 @@ export const useCVBuilderStore = create<CVBuilderState>()(
       savedCvId: null,
       selectedTemplateBackendId: null,
       atsResult: null,
+      selectedResumeId: null,
 
       setSavedCvId: (id) => set({ savedCvId: id }),
       setSelectedTemplateBackendId: (id) => set({ selectedTemplateBackendId: id }),
       setAtsResult: (result) => set({ atsResult: result }),
+      setSelectedResumeId: (id) => set({ selectedResumeId: id }),
 
       setSelectedFlow: (flow) => set({ selectedFlow: flow, isUploaded: flow === 'upload' }),
       setSelectedTemplateId: (template) => set({ selectedTemplateId: template, selectedTemplate: template }),
@@ -141,6 +147,7 @@ export const useCVBuilderStore = create<CVBuilderState>()(
         savedCvId: null,
         selectedTemplateBackendId: null,
         atsResult: null,
+        selectedResumeId: null,
         ...fromCvData(initialCv),
       }),
 
@@ -226,6 +233,7 @@ export const useCVBuilderStore = create<CVBuilderState>()(
         savedCvId: state.savedCvId,
         selectedTemplateBackendId: state.selectedTemplateBackendId,
         atsResult: state.atsResult,
+        selectedResumeId: state.selectedResumeId,
       }),
     }
   )
